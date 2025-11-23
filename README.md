@@ -85,12 +85,13 @@ VITE_API_URL=http://localhost:3000
 -----------------------------
 
 ## ▶️ Cách Chạy Dự ÁnBạn cần mở 2 terminal riêng biệt.
-Terminal 1: Chạy Server (Backend)cd server
+Terminal 1: Chạy Server (Backend)
 ```bash
+   cd server
    npm run server
 ```
-# Server sẽ chạy tại http://localhost:5000
-# Sử dụng 'nodemon' để tự động restart khi sửa code
+### Server sẽ chạy tại http://localhost:3000
+### Sử dụng 'nodemon' để tự động restart khi sửa code
 Terminal 2: Chạy Client (Frontend)cd client
 ```bash
 npm run dev
