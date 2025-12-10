@@ -5,17 +5,19 @@ import { useAppContext } from '../../context/AppContext';
 
 const Dashboard = () => {
 
-    const { currency, user, getToken, toast, axios } = useAppContext();
+    const { currency, user, getToken, toast, axios, ownerHotels, fetchOwnerHotels } = useAppContext();
 
     const [dashboardData, setDashboardData] = useState({
         bookings: [],
         totalBookings: 0,
         totalRevenue: 0,
     });
+    const [selectedHotelId, setSelectedHotelId] = useState('');
 
     const fetchDashboardData = async () => {
         try {
-            const { data } = await axios.get('/api/bookings/hotel', { headers: { Authorization: `Bearer ${await getToken()}` } })
+            const params = selectedHotelId ? { hotelId: selectedHotelId } : {}
+            const { data } = await axios.get('/api/bookings/hotel', { params, headers: { Authorization: `Bearer ${await getToken()}` } })
             if (data.success) {
                 setDashboardData(data.dashboardData)
             } else {
@@ -27,14 +29,34 @@ const Dashboard = () => {
     }
 
     useEffect(() => {
-        if (user) {
+        if (user && !ownerHotels.length) {
+            fetchOwnerHotels();
+        }
+    }, [user, ownerHotels, fetchOwnerHotels]);
+
+    useEffect(() => {
+        if (ownerHotels.length && !selectedHotelId) {
+            setSelectedHotelId(ownerHotels[0]._id)
+        }
+    }, [ownerHotels, selectedHotelId]);
+
+    useEffect(() => {
+        if (user && (ownerHotels.length || selectedHotelId)) {
             fetchDashboardData();
         }
-    }, [user]);
+    }, [user, selectedHotelId, ownerHotels]);
 
     return (
         <div>
             <Title align='left' font='outfit' title='Dashboard' subTitle='Monitor your room listings, track bookings and analyze revenue—all in one place. Stay updated with real-time insights to ensure smooth operations.' />
+            <div className='flex gap-3 flex-wrap mt-6'>
+                {ownerHotels.map((hotel) => (
+                    <button key={hotel._id} onClick={() => setSelectedHotelId(hotel._id)} className={`px-4 py-2 rounded border ${selectedHotelId === hotel._id ? 'bg-primary text-white border-primary' : 'border-gray-300 text-gray-700'} cursor-pointer`}>
+                        {hotel.name} - {hotel.city}
+                    </button>
+                ))}
+                {!ownerHotels.length && <p className='text-sm text-red-500'>Please register a hotel to view dashboard insights.</p>}
+            </div>
             <div className='flex gap-4 my-8'>
                 <div className='bg-primary/3 border border-primary/10 rounded flex p-4 pr-8'>
                     <img className='max-sm:hidden h-10' src={assets.totalBookingIcon} alt="" />

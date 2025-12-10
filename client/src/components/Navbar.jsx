@@ -56,13 +56,24 @@ const Navbar = () => {
                         <div className={`${isScrolled ? "bg-gray-700" : "bg-white"} h-0.5 w-0 group-hover:w-full transition-all duration-300`} ></div>
                     </NavLink>
                 ))}
-                {
-                    user && (
-                        <button className={`border px-4 py-1 text-sm font-light rounded-full cursor-pointer ${isScrolled ? 'text-black' : 'text-white'} transition-all`} onClick={() => isOwner ? navigate('/owner') : setShowHotelReg(true)}>
+                {user && (
+                    <div className="flex items-center gap-3">
+                        {isOwner && (
+                            <button
+                                className={`border px-4 py-1 text-sm font-light rounded-full cursor-pointer ${isScrolled ? 'text-black' : 'text-white'} transition-all`}
+                                onClick={() => setShowHotelReg(true)}
+                            >
+                                List Another Hotel
+                            </button>
+                        )}
+                        <button
+                            className={`border px-4 py-1 text-sm font-light rounded-full cursor-pointer ${isScrolled ? 'text-black' : 'text-white'} transition-all`}
+                            onClick={() => isOwner ? navigate('/owner') : setShowHotelReg(true)}
+                        >
                             {isOwner ? 'Dashboard' : 'List Your Hotel'}
                         </button>
-                    )
-                }
+                    </div>
+                )}
             </div>
 
             <div className="hidden md:flex items-center gap-4">
@@ -102,6 +113,17 @@ const Navbar = () => {
                         <NavLink to="/my-bookings" onClick={() => setIsMenuOpen(false)}>
                             My Bookings
                         </NavLink>
+                        {isOwner && (
+                            <button
+                                className="border px-4 py-1 text-sm font-light rounded-full cursor-pointer transition-all"
+                                onClick={() => {
+                                    setIsMenuOpen(false);
+                                    setShowHotelReg(true);
+                                }}
+                            >
+                                List Another Hotel
+                            </button>
+                        )}
                         <button className="border px-4 py-1 text-sm font-light rounded-full cursor-pointer transition-all" onClick={() => isOwner ? navigate('/owner') : setShowHotelReg(true)}>
                             {isOwner ? 'Dashboard' : 'List Your Hotel'}
                         </button>

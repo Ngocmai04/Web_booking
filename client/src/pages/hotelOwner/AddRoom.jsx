@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { assets } from '../../assets/assets'
 import Title from '../../components/Title'
 import toast from 'react-hot-toast'
@@ -6,10 +6,11 @@ import { useAppContext } from '../../context/AppContext'
 
 const AddRoom = () => {
 
-    const { axios, getToken } = useAppContext()
+    const { axios, getToken, ownerHotels, fetchOwnerHotels } = useAppContext()
 
     const [images, setImages] = useState({ 1: null, 2: null, 3: null, 4: null })
     const [loading, setLoading] = useState(false);
+    const [selectedHotelId, setSelectedHotelId] = useState('');
 
     const [inputs, setInputs] = useState({
         roomType: '',
@@ -26,7 +27,7 @@ const AddRoom = () => {
     const onSubmitHandler = async (e) => {
         e.preventDefault()
         // Check if all inputs are filled
-        if (!inputs.roomType || !inputs.pricePerNight || !inputs.amenities || !Object.values(images).some(image => image)) {
+        if (!inputs.roomType || !inputs.pricePerNight || !inputs.amenities || !Object.values(images).some(image => image) || !selectedHotelId) {
             toast.error("Please fill in all the details")
             return;
         }
@@ -38,6 +39,7 @@ const AddRoom = () => {
             // Converting Amenities to Array & keeping only enabled Amenities
             const amenities = Object.keys(inputs.amenities).filter(key => inputs.amenities[key])
             formData.append('amenities', JSON.stringify(amenities))
+            formData.append('hotelId', selectedHotelId)
 
             // Adding Images to FormData
             Object.keys(images).forEach((key) => {
@@ -71,6 +73,20 @@ const AddRoom = () => {
         }
     }
 
+    useEffect(() => {
+        if (!ownerHotels.length) {
+            fetchOwnerHotels();
+        }
+    }, [ownerHotels, fetchOwnerHotels]);
+
+    useEffect(() => {
+        if (ownerHotels.length && !selectedHotelId) {
+            setSelectedHotelId(ownerHotels[0]._id);
+        }
+    }, [ownerHotels, selectedHotelId]);
+
+    const hotelsAvailable = ownerHotels.length > 0;
+
     return (
         <form onSubmit={onSubmitHandler}>
             <Title align='left' font='outfit' title='Add Room' subTitle='Fill in the details carefully and accurate room details, pricing, and amenities, to enhance the user booking experience.' />
@@ -87,6 +103,16 @@ const AddRoom = () => {
             </div>
 
             <div className='w-full flex max-sm:flex-col sm:gap-4 mt-4'>
+
+                <div className='flex-1 max-w-48'>
+                    <p className='text-gray-800 mt-4'>Hotel</p>
+                    <select className='border opacity-70 border-gray-300 mt-1 rounded p-2 w-full' value={selectedHotelId} onChange={(e) => setSelectedHotelId(e.target.value)}>
+                        <option value=''>Select Hotel</option>
+                        {ownerHotels.map((hotel) => (
+                            <option key={hotel._id} value={hotel._id}>{hotel.name} - {hotel.city}</option>
+                        ))}
+                    </select>
+                </div>
 
                 <div className='flex-1 max-w-48'>
                     <p className='text-gray-800 mt-4'>Room Type</p>
@@ -118,9 +144,12 @@ const AddRoom = () => {
                 ))}
             </div>
 
-            <button className='bg-primary text-white px-8 py-2 rounded mt-8 cursor-pointer' disabled={loading}>
-                {loading ? "Adding..." : "Add Room"}
-            </button>
+            <div className='flex items-center gap-4 mt-8'>
+                <button className='bg-primary text-white px-8 py-2 rounded cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed' disabled={loading || !hotelsAvailable}>
+                    {loading ? "Adding..." : "Add Room"}
+                </button>
+                {!hotelsAvailable && <p className='text-sm text-red-500'>Please register a hotel before adding rooms.</p>}
+            </div>
         </form>
     )
 }

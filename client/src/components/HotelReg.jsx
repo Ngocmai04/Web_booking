@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { assets, cities } from "../assets/assets";
 
 const HotelReg = () => {
-    const { setShowHotelReg, axios, getToken, setIsOwner } = useAppContext();
+    const { setShowHotelReg, axios, getToken, setIsOwner, fetchOwnerHotels, fetchHotels } = useAppContext();
 
     const [name, setName] = useState("");
     const [address, setAddress] = useState("");
@@ -21,6 +21,12 @@ const HotelReg = () => {
                 toast.success(data.message);
                 setIsOwner(true);
                 setShowHotelReg(false);
+                fetchOwnerHotels();
+                fetchHotels();
+                setName("");
+                setContact("");
+                setAddress("");
+                setCity("");
             } else {
                 toast.error(data.message);
             }
