@@ -19,6 +19,8 @@ export const AppProvider = ({ children }) => {
     const [isOwner, setIsOwner] = useState(false);
     const [showHotelReg, setShowHotelReg] = useState(false);
     const [rooms, setRooms] = useState([]);
+    const [hotels, setHotels] = useState([]);
+    const [ownerHotels, setOwnerHotels] = useState([]);
     const [searchedCities, setSearchedCities] = useState([]); // max 3 recent searched cities
 
     const facilityIcons = {
@@ -61,6 +63,32 @@ export const AppProvider = ({ children }) => {
         }
     }
 
+    const fetchHotels = async () => {
+        try {
+            const { data } = await axios.get('/api/hotels');
+            if (data.success) {
+                setHotels(data.hotels);
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
+    }
+
+    const fetchOwnerHotels = async () => {
+        try {
+            const { data } = await axios.get('/api/hotels/owner', { headers: { Authorization: `Bearer ${await getToken()}` } })
+            if (data.success) {
+                setOwnerHotels(data.hotels);
+            } else {
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
+    }
+
     useEffect(() => {
         if (user) {
             fetchUser();
@@ -69,7 +97,14 @@ export const AppProvider = ({ children }) => {
 
     useEffect(() => {
         fetchRooms();
+        fetchHotels();
     }, []);
+
+    useEffect(() => {
+        if (user && isOwner) {
+            fetchOwnerHotels();
+        }
+    }, [user, isOwner]);
 
     const value = {
         currency, navigate,
@@ -79,6 +114,9 @@ export const AppProvider = ({ children }) => {
         showHotelReg, setShowHotelReg,
         facilityIcons,
         rooms, setRooms,
+        hotels, setHotels,
+        ownerHotels, setOwnerHotels,
+        fetchHotels, fetchOwnerHotels,
         searchedCities, setSearchedCities
     };
 
