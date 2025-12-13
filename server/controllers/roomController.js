@@ -6,11 +6,11 @@ import { v2 as cloudinary } from "cloudinary";
 // POST /api/rooms
 export const createRoom = async (req, res) => {
   try {
-    const { roomType, pricePerNight, amenities } = req.body;
+    const { roomType, pricePerNight, amenities, hotelId } = req.body;
 
-    const hotel = await Hotel.findOne({ owner: req.auth.userId });
+    const hotel = await Hotel.findOne({ _id: hotelId, owner: req.auth.userId });
 
-    if (!hotel) return res.json({ success: false, message: "No Hotel found" });
+    if (!hotel) return res.json({ success: false, message: "Hotel not found for this owner" });
 
     // upload images to cloudinary
     const uploadImages = req.files.map(async (file) => {
@@ -39,11 +39,18 @@ export const createRoom = async (req, res) => {
 // GET /api/rooms
 export const getRooms = async (req, res) => {
   try {
-    const rooms = await Room.find({ isAvailable: true })
+    const { hotelId } = req.query;
+    const filters = { isAvailable: true };
+
+    if (hotelId) {
+      filters.hotel = hotelId;
+    }
+
+    const rooms = await Room.find(filters)
       .populate({
         path: 'hotel',
         populate: {
-          path: 'owner', 
+          path: 'owner',
           select: 'image',
         },
       }).sort({ createdAt: -1 });
@@ -57,12 +64,26 @@ export const getRooms = async (req, res) => {
 // GET /api/rooms/owner
 export const getOwnerRooms = async (req, res) => {
   try {
-    const hotelData = await Hotel.findOne({ owner: req.auth.userId });
-    const rooms = await Room.find({ hotel: hotelData._id.toString() }).populate("hotel");
+    const ownerHotels = await Hotel.find({ owner: req.auth.userId });
+
+    if (!ownerHotels.length) {
+      return res.json({ success: false, message: "No Hotel found" });
+    }
+
+    const { hotelId } = req.query;
+    const selectedHotel = hotelId
+      ? ownerHotels.find((hotel) => hotel._id.toString() === hotelId)
+      : ownerHotels[0];
+
+    if (!selectedHotel) {
+      return res.json({ success: false, message: "Hotel not found" });
+    }
+
+    const rooms = await Room.find({ hotel: selectedHotel._id.toString() }).populate("hotel");
     res.json({ success: true, rooms });
   } catch (error) {
     console.log(error);
-    
+
     res.json({ success: false, message: error.message });
   }
 };

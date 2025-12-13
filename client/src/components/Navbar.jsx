@@ -167,21 +167,27 @@ const Navbar = () => {
           </NavLink>
         ))}
 
-        {user && (
-          <>
-            <NavLink to="/my-bookings" onClick={() => setIsMenuOpen(false)}>
-              My Bookings
-            </NavLink>
-            <button
-              className="border px-5 py-1.5 rounded-full border-red-700"
-              onClick={() =>
-                isOwner ? navigate("/owner") : setShowHotelReg(true)
-              }
-            >
-              {isOwner ? "Dashboard" : "List Your Hotel"}
-            </button>
-          </>
-        )}
+                {user && (
+                    <>
+                        <NavLink to="/my-bookings" onClick={() => setIsMenuOpen(false)}>
+                            My Bookings
+                        </NavLink>
+                        {isOwner && (
+                            <button
+                                className="border px-4 py-1 text-sm font-light rounded-full cursor-pointer transition-all"
+                                onClick={() => {
+                                    setIsMenuOpen(false);
+                                    setShowHotelReg(true);
+                                }}
+                            >
+                                List Another Hotel
+                            </button>
+                        )}
+                        <button className="border px-4 py-1 text-sm font-light rounded-full cursor-pointer transition-all" onClick={() => isOwner ? navigate('/owner') : setShowHotelReg(true)}>
+                            {isOwner ? 'Dashboard' : 'List Your Hotel'}
+                        </button>
+                    </>
+                )}
 
         {!user && (
           <button

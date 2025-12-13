@@ -102,7 +102,7 @@ export const createBooking = async (req, res) => {
 
   } catch (error) {
     console.log(error);
-    
+
     res.json({ success: false, message: "Failed to create booking" });
   }
 };
@@ -122,11 +122,22 @@ export const getUserBookings = async (req, res) => {
 
 export const getHotelBookings = async (req, res) => {
   try {
-    const hotel = await Hotel.findOne({ owner: req.auth.userId });
-    if (!hotel) {
+    const { hotelId } = req.query;
+
+    const hotels = await Hotel.find({ owner: req.auth.userId });
+    if (!hotels.length) {
       return res.json({ success: false, message: "No Hotel found" });
     }
-    const bookings = await Booking.find({ hotel: hotel._id }).populate("room hotel user").sort({ createdAt: -1 });
+
+    const selectedHotel = hotelId
+      ? hotels.find((hotel) => hotel._id.toString() === hotelId)
+      : hotels[0];
+
+    if (!selectedHotel) {
+      return res.json({ success: false, message: "Hotel not found" });
+    }
+
+    const bookings = await Booking.find({ hotel: selectedHotel._id }).populate("room hotel user").sort({ createdAt: -1 });
     // Total Bookings
     const totalBookings = bookings.length;
     // Total Revenue
