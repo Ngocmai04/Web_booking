@@ -7,6 +7,11 @@ const HotelCard = ({room,index}) => {
 
     const { currency } = useAppContext();
 
+    // Prevent rendering if room or hotel data is missing
+    if (!room || !room.hotel) {
+        return null;
+    }
+
     return (
         <Link to={'/rooms/' + room._id} onClick={() => scrollTo(0, 0)} key={room._id} className='relative max-w-70 w-full rounded-xl overflow-hidden bg-white text-gray-500/90 shadow-[0px_4px_4px_rgba(0,0,0,0.05)]'>
             <img src={room.images[0]} alt="hotel-img" draggable="false" />

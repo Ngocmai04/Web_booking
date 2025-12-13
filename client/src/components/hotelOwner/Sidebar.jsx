@@ -6,6 +6,7 @@ const Sidebar = () => {
 
     const sidebarLinks = [
         { name: "Dashboard", path: "/owner", icon: assets.dashboardIcon },
+        { name: "Hotels", path: "/owner/hotels", icon: assets.addIcon },
         { name: "Add Room", path: "/owner/add-room", icon: assets.addIcon },
         { name: "List Room", path: "/owner/list-room", icon: assets.listIcon },
     ];

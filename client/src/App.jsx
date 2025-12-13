@@ -6,6 +6,9 @@ import Layout from './pages/hotelOwner/Layout'
 import Dashboard from './pages/hotelOwner/Dashboard'
 import AddRoom from './pages/hotelOwner/AddRoom'
 import ListRoom from './pages/hotelOwner/ListRoom'
+import AddHotel from './pages/hotelOwner/AddHotel'
+import EditHotel from './pages/hotelOwner/EditHotel'
+import ListHotel from './pages/hotelOwner/ListHotel'
 import HotelReg from './components/HotelReg'
 import { useAppContext } from './context/AppContext'
 import { Toaster } from 'react-hot-toast'
@@ -88,6 +91,9 @@ const App = () => {
           {/* Owner routes */}
           <Route path="/owner" element={<Layout />}>
             <Route index element={<Dashboard />} />
+            <Route path="hotels" element={<ListHotel />} />
+            <Route path="add-hotel" element={<AddHotel />} />
+            <Route path="edit-hotel/:id" element={<EditHotel />} />
             <Route path="add-room" element={<AddRoom />} />
             <Route path="list-room" element={<ListRoom />} />
           </Route>
