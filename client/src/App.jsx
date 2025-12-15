@@ -17,7 +17,8 @@ import RoomDetails from './pages/RoomDetails'
 import Footer from './components/Footer'
 import MyBookings from './pages/MyBookings'
 import Loader from './components/Loader'
-import SnowFalling from './components/SnowFalling'  
+import SnowFalling from './components/SnowFalling'
+import ReindeerCursor from './components/ReindeerCursor'
 
 const App = () => {
 
@@ -25,61 +26,113 @@ const App = () => {
   const isOwnerPath = useLocation().pathname.includes("owner");
   const { showHotelReg } = useAppContext();
 
+  // Prevent horizontal scroll
+  React.useEffect(() => {
+    document.body.style.overflowX = 'hidden';
+    document.documentElement.style.overflowX = 'hidden';
+    return () => {
+      document.body.style.overflowX = '';
+      document.documentElement.style.overflowX = '';
+    };
+  }, []);
+
   return (
     <div
-      className="font-inter min-h-screen relative"
+      className="font-inter min-h-screen relative overflow-x-hidden"
       style={{
-        // ❄️ Background Giáng Sinh (không áp dụng cho owner)
+        // 🎄 Warm Christmas Background
         background: !isOwnerPath
-          ? "linear-gradient(180deg, #b71c1c 0%, #880e4f 100%)"
+          ? "linear-gradient(180deg, #FEF3E2 0%, #FFE5CC 50%, #FFF8F0 100%)"
           : "white",
-        color: !isOwnerPath ? "white" : "black",
         transition: "0.3s ease",
       }}
     >
       <Toaster />
 
-      {/* ❄️ Tuyết rơi toàn trang (chỉ user, không owner) */}
-      {!isOwnerPath && <SnowFalling />}
-
-      {/* 🎄 Vầng sáng đỏ ở góc trái trên */}
+      {/* 🎄 Warm Christmas Decorations */}
       {!isOwnerPath && (
-        <div
-          style={{
-            position: "absolute",
-            top: -80,
-            left: -80,
-            width: 250,
-            height: 250,
-            background: "rgba(255, 255, 255, 0.18)",
-            borderRadius: "50%",
-            filter: "blur(90px)",
-            pointerEvents: "none",
-          }}
-        />
-      )}
+        <>
+          {/* 🎄 Christmas Lights - Full Width */}
+          <div className="fixed top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 via-green-400 via-yellow-300 via-red-400 to-green-400 opacity-70 animate-pulse shadow-lg z-[100]" />
 
-      {/* 🎄 Vầng sáng xanh lá ở góc phải dưới */}
-      {!isOwnerPath && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: -100,
-            right: -60,
-            width: 300,
-            height: 300,
-            background: "rgba(0, 255, 170, 0.15)",
-            borderRadius: "50%",
-            filter: "blur(110px)",
-            pointerEvents: "none",
-          }}
-        />
+          {/* ❄️ Gentle Snowflakes - Always Falling */}
+          <div className="fixed inset-0 pointer-events-none z-[1] overflow-hidden">
+            {[...Array(40)].map((_, i) => (
+              <div
+                key={`snow-${i}`}
+                className="absolute text-white animate-snow-fall"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: '-20px',
+                  animationDuration: `${8 + Math.random() * 12}s`,
+                  animationDelay: `${Math.random() * 8}s`,
+                  fontSize: `${10 + Math.random() * 14}px`,
+                  opacity: 0.5 + Math.random() * 0.4,
+                }}
+              >
+                ❄
+              </div>
+            ))}
+          </div>
+
+          {/* ❄️ Snow Effect Component */}
+          <SnowFalling />
+
+          {/* 🦌 Reindeer Cursor */}
+          <ReindeerCursor />
+
+          {/* 🎄 Warm Glow Effects */}
+          <div
+            style={{
+              position: "fixed",
+              top: -100,
+              left: -100,
+              width: 350,
+              height: 350,
+              background: "radial-gradient(circle, rgba(255, 230, 200, 0.3) 0%, transparent 70%)",
+              borderRadius: "50%",
+              filter: "blur(80px)",
+              pointerEvents: "none",
+              zIndex: 0,
+            }}
+          />
+
+          <div
+            style={{
+              position: "fixed",
+              top: "20%",
+              right: -80,
+              width: 300,
+              height: 300,
+              background: "radial-gradient(circle, rgba(255, 200, 180, 0.25) 0%, transparent 70%)",
+              borderRadius: "50%",
+              filter: "blur(90px)",
+              pointerEvents: "none",
+              zIndex: 0,
+            }}
+          />
+
+          <div
+            style={{
+              position: "fixed",
+              bottom: -120,
+              left: "30%",
+              width: 400,
+              height: 400,
+              background: "radial-gradient(circle, rgba(255, 240, 220, 0.3) 0%, transparent 70%)",
+              borderRadius: "50%",
+              filter: "blur(100px)",
+              pointerEvents: "none",
+              zIndex: 0,
+            }}
+          />
+        </>
       )}
 
       {!isOwnerPath && <Navbar />}
       {showHotelReg && <HotelReg />}
 
-      {/* Nội dung chính */}
+      {/* Main Content */}
       <div className='min-h-[70vh] relative z-[10]'>
         <Routes>
           <Route path='/' element={<Home />} />
@@ -101,6 +154,30 @@ const App = () => {
       </div>
 
       {!isOwnerPath && <Footer />}
+
+      {/* Snow Fall Animation */}
+      <style>{`
+        @keyframes snow-fall {
+          0% { 
+            transform: translateY(0) translateX(0) rotate(0deg); 
+            opacity: 0; 
+          }
+          10% { 
+            opacity: 1; 
+          }
+          90% { 
+            opacity: 1; 
+          }
+          100% { 
+            transform: translateY(100vh) translateX(${Math.random() * 100 - 50}px) rotate(360deg); 
+            opacity: 0; 
+          }
+        }
+        .animate-snow-fall {
+          animation: snow-fall linear infinite;
+          will-change: transform, opacity;
+        }
+      `}</style>
     </div>
   )
 }
