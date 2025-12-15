@@ -5,13 +5,15 @@ import toast from 'react-hot-toast';
 
 const ListRoom = () => {
 
-    const { axios, getToken, user } = useAppContext()
+    const { axios, getToken, user, ownerHotels, fetchOwnerHotels } = useAppContext()
     const [rooms, setRooms] = React.useState([])
+    const [selectedHotelId, setSelectedHotelId] = React.useState('')
 
     // Fetch Rooms of the Hotel Owner
     const fetchRooms = async () => {
         try {
-            const { data } = await axios.get('/api/rooms/owner', { headers: { Authorization: `Bearer ${await getToken()}` } })
+            const params = selectedHotelId ? { hotelId: selectedHotelId } : {}
+            const { data } = await axios.get('/api/rooms/owner', { params, headers: { Authorization: `Bearer ${await getToken()}` } })
             if (data.success) {
                 setRooms(data.rooms)
             }
@@ -34,17 +36,37 @@ const ListRoom = () => {
         }
     }
 
+    useEffect(() => {
+        if (user && !ownerHotels.length) {
+            fetchOwnerHotels();
+        }
+    }, [user, ownerHotels, fetchOwnerHotels]);
+
+    useEffect(() => {
+        if (ownerHotels.length && !selectedHotelId) {
+            setSelectedHotelId(ownerHotels[0]._id)
+        }
+    }, [ownerHotels, selectedHotelId])
+
     // Fetch Rooms when user is logged in
     useEffect(() => {
-        if (user) {
+        if (user && (ownerHotels.length || selectedHotelId)) {
             fetchRooms()
         }
-    }, [user])
+    }, [user, selectedHotelId, ownerHotels])
 
     return (
         <div>
             <Title align='left' font='outfit' title='Room Listings' subTitle='View, edit, or manage all listed rooms. Keep the information up-to-date to provide the best experience for users.' />
-            <p className='text-gray-500 mt-8'>Total Hotels</p>
+            <p className='text-gray-500 mt-8'>Hotels</p>
+            <div className='flex gap-4 flex-wrap mt-3'>
+                {ownerHotels.map((hotel) => (
+                    <button key={hotel._id} onClick={() => setSelectedHotelId(hotel._id)} className={`px-4 py-2 rounded border ${selectedHotelId === hotel._id ? 'bg-primary text-white border-primary' : 'border-gray-300 text-gray-700'} cursor-pointer`}>
+                        {hotel.name} - {hotel.city}
+                    </button>
+                ))}
+                {!ownerHotels.length && <p className='text-sm text-red-500'>Please register a hotel to manage rooms.</p>}
+            </div>
             {/* Table with heads User Name, Room Name, Amount Paid, Payment Status */}
             <div className='w-full max-w-3xl text-left border border-gray-300 rounded-lg max-h-80 overflow-y-scroll mt-3'>
                 <table className='w-full' >

@@ -1,9 +1,13 @@
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
-import { registerHotel } from "../controllers/hotelController.js";
+import { getHotels, getOwnerHotels, registerHotel, updateHotel, deleteHotel } from "../controllers/hotelController.js";
 
-const hotelRouter = express.Router();
+const router = express.Router();
 
-hotelRouter.post("/", protect, registerHotel);
+router.post("/", protect, registerHotel);
+router.get("/", getHotels);
+router.get("/owner", protect, getOwnerHotels);
+router.put("/:id", protect, updateHotel);
+router.delete("/:id", protect, deleteHotel);
 
-export default hotelRouter;
+export default router;

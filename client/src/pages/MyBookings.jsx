@@ -10,20 +10,6 @@ const MyBookings = () => {
     const [bookings, setBookings] = useState([]);
 
 
-    const fetchUserBookings = async () => {
-        try {
-            const { data } = await axios.get('/api/bookings/user', { headers: { Authorization: `Bearer ${await getToken()}` } })
-            if (data.success) {
-                setBookings(data.bookings)
-            }
-            else {
-                toast.error(data.message)
-            }
-        } catch (error) {
-            toast.error(error.message)
-        }
-    }
-
     const handlePayment = async (bookingId) => {
         try {
             const { data } = await axios.post('/api/bookings/stripe-payment', { bookingId }, { headers: { Authorization: `Bearer ${await getToken()}` } })
@@ -38,10 +24,24 @@ const MyBookings = () => {
     }
 
     useEffect(() => {
+        const fetchUserBookings = async () => {
+            try {
+                const { data } = await axios.get('/api/bookings/user', { headers: { Authorization: `Bearer ${await getToken()}` } })
+                if (data.success) {
+                    setBookings(data.bookings)
+                }
+                else {
+                    toast.error(data.message)
+                }
+            } catch (error) {
+                toast.error(error.message)
+            }
+        }
+
         if (user) {
             fetchUserBookings();
         }
-    }, [user]);
+    }, [user, axios, getToken]);
 
     return (
         <div className='py-28 md:pb-35 md:pt-32 px-4 md:px-16 lg:px-24 xl:px-32'>

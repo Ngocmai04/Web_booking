@@ -6,11 +6,15 @@ import HotelCard from './HotelCard';
 
 const FeaturedDestination = () => {
     const { rooms, navigate } = useAppContext();
-    return rooms.length > 0 && (
+    
+    // Filter rooms to only include those with valid hotel data
+    const validRooms = rooms.filter(room => room && room.hotel);
+    
+    return validRooms.length > 0 && (
         <div className='flex flex-col items-center px-6 md:px-16 lg:px-24 bg-slate-50 py-20'>
             <Title title="Featured Destination" subTitle="Discover our handpicked selection of exceptional properties around the world, offering unparalleled luxury and unforgettable experiences." />
             <div className='flex flex-wrap items-center justify-center gap-6 mt-20'>
-                {rooms.slice(0, 4).map((room, index) => (
+                {validRooms.slice(0, 4).map((room, index) => (
                     <HotelCard key={room._id} room={room} index={index} />
                 ))}
             </div>
