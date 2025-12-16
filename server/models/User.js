@@ -6,9 +6,15 @@ const userSchema = mongoose.Schema(
     username: { type: String, required: true },
     email: { type: String, required: false },
     image: { type: String, required: false },
-    role: { type: String, enum: ["user", "hotelOwner"], default: "user", },
+    role: {
+      type: String,
+      enum: ["user", "hotelOwner", "admin"],
+      default: "user",
+    },
+    isActive: { type: Boolean, default: true }, // Admin can lock/unlock accounts
     recentSearchedCities: [{ type: String, required: true }],
-  }, { timestamps: true }
+  },
+  { timestamps: true }
 );
 
 const User = mongoose.model("User", userSchema);

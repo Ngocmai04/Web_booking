@@ -20,7 +20,9 @@ export const protect = async (req, res, next) => {
     const { userId, user } = req.auth; // userId + user được Clerk attach
 
     if (!userId) {
-      return res.status(401).json({ success: false, message: "Not authenticated" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Not authenticated" });
     }
 
     // Lấy email, username, image từ user do Clerk attach
@@ -34,12 +36,22 @@ export const protect = async (req, res, next) => {
     // Nếu chưa có → tạo
     if (!dbUser) {
       dbUser = await User.create({
-        _id: userId,          // Clerk ID
+        _id: userId, // Clerk ID
         email,
         username,
         image,
         recentSearchedCities: [],
       });
+    }
+
+    // Kiểm tra tài khoản có bị khóa không
+    if (!dbUser.isActive) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Tài khoản đã bị khóa. Vui lòng liên hệ admin.",
+        });
     }
 
     req.user = dbUser;
@@ -50,3 +62,17 @@ export const protect = async (req, res, next) => {
   }
 };
 
+// Middleware chỉ cho phép Admin truy cập
+export const isAdmin = async (req, res, next) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Chỉ Admin mới có quyền truy cập" });
+    }
+    next();
+  } catch (err) {
+    console.error("Admin auth error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
