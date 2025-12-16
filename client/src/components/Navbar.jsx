@@ -34,7 +34,7 @@ const Navbar = () => {
   const location = useLocation();
 
   const { openSignIn } = useClerk();
-  const { user, setShowHotelReg, isOwner, navigate } = useAppContext();
+  const { user, setShowHotelReg, isOwner, isAdmin, navigate } = useAppContext();
 
   useEffect(() => {
     if (location.pathname !== "/") {
@@ -104,10 +104,18 @@ const Navbar = () => {
                 : "text-white border-white/80 bg-white/10"
             }`}
             onClick={() =>
-              isOwner ? navigate("/owner") : setShowHotelReg(true)
+              isAdmin
+                ? navigate("/admin")
+                : isOwner
+                ? navigate("/owner")
+                : setShowHotelReg(true)
             }
           >
-            {isOwner ? "Dashboard" : "List Your Hotel"}
+            {isAdmin
+              ? "Admin Panel"
+              : isOwner
+              ? "Dashboard"
+              : "List Your Hotel"}
           </button>
         )}
       </div>
@@ -167,27 +175,41 @@ const Navbar = () => {
           </NavLink>
         ))}
 
-                {user && (
-                    <>
-                        <NavLink to="/my-bookings" onClick={() => setIsMenuOpen(false)}>
-                            My Bookings
-                        </NavLink>
-                        {isOwner && (
-                            <button
-                                className="border px-4 py-1 text-sm font-light rounded-full cursor-pointer transition-all"
-                                onClick={() => {
-                                    setIsMenuOpen(false);
-                                    setShowHotelReg(true);
-                                }}
-                            >
-                                List Another Hotel
-                            </button>
-                        )}
-                        <button className="border px-4 py-1 text-sm font-light rounded-full cursor-pointer transition-all" onClick={() => isOwner ? navigate('/owner') : setShowHotelReg(true)}>
-                            {isOwner ? 'Dashboard' : 'List Your Hotel'}
-                        </button>
-                    </>
-                )}
+        {user && (
+          <>
+            <NavLink to="/my-bookings" onClick={() => setIsMenuOpen(false)}>
+              My Bookings
+            </NavLink>
+            {isOwner && (
+              <button
+                className="border px-4 py-1 text-sm font-light rounded-full cursor-pointer transition-all"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setShowHotelReg(true);
+                }}
+              >
+                List Another Hotel
+              </button>
+            )}
+            <button
+              className="border px-4 py-1 text-sm font-light rounded-full cursor-pointer transition-all"
+              onClick={() => {
+                setIsMenuOpen(false);
+                isAdmin
+                  ? navigate("/admin")
+                  : isOwner
+                  ? navigate("/owner")
+                  : setShowHotelReg(true);
+              }}
+            >
+              {isAdmin
+                ? "Admin Panel"
+                : isOwner
+                ? "Dashboard"
+                : "List Your Hotel"}
+            </button>
+          </>
+        )}
 
         {!user && (
           <button

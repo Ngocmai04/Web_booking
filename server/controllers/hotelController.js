@@ -21,12 +21,15 @@ export const registerHotel = async (req, res) => {
   }
 };
 
-// API to fetch all hotels (optional city filter)
+// API to fetch all hotels (optional city filter) - Chỉ hiện khách sạn đã duyệt
 // GET /api/hotels
 export const getHotels = async (req, res) => {
   try {
     const { city } = req.query;
-    const filter = city ? { city: new RegExp(city, "i") } : {};
+    const filter = { isApproved: true, isActive: true };
+    if (city) {
+      filter.city = new RegExp(city, "i");
+    }
     const hotels = await Hotel.find(filter).sort({ createdAt: -1 });
     res.json({ success: true, hotels });
   } catch (error) {
@@ -61,7 +64,10 @@ export const updateHotel = async (req, res) => {
     }
 
     if (hotel.owner.toString() !== owner) {
-      return res.json({ success: false, message: "Unauthorized to update this hotel" });
+      return res.json({
+        success: false,
+        message: "Unauthorized to update this hotel",
+      });
     }
 
     // Update hotel
@@ -71,7 +77,11 @@ export const updateHotel = async (req, res) => {
       { new: true }
     );
 
-    res.json({ success: true, message: "Hotel Updated Successfully", hotel: updatedHotel });
+    res.json({
+      success: true,
+      message: "Hotel Updated Successfully",
+      hotel: updatedHotel,
+    });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
@@ -91,7 +101,10 @@ export const deleteHotel = async (req, res) => {
     }
 
     if (hotel.owner.toString() !== owner) {
-      return res.json({ success: false, message: "Unauthorized to delete this hotel" });
+      return res.json({
+        success: false,
+        message: "Unauthorized to delete this hotel",
+      });
     }
 
     // Delete hotel
