@@ -69,12 +69,12 @@ const AddHotel = () => {
 
             <div className='w-full max-w-2xl'>
                 <div className='mt-6'>
-                    <p className='text-gray-800 font-medium'>Hotel Name</p>
-                    <input 
-                        type="text" 
+                    <p className='text-emerald-800 font-medium'>Hotel Name</p>
+                    <input
+                        type="text"
                         name='name'
-                        placeholder='Enter hotel name' 
-                        className='border border-gray-300 mt-2 rounded p-3 w-full' 
+                        placeholder='Enter hotel name'
+                        className='border border-gray-300 mt-2 rounded p-3 w-full'
                         value={inputs.name}
                         onChange={handleChange}
                     />
@@ -103,24 +103,24 @@ const AddHotel = () => {
                 </div>
 
                 <div className='mt-4'>
-                    <p className='text-gray-800 font-medium'>City</p>
-                    <input 
-                        type="text" 
+                    <p className='text-emerald-800 font-medium'>City</p>
+                    <input
+                        type="text"
                         name='city'
-                        placeholder='Enter city' 
-                        className='border border-gray-300 mt-2 rounded p-3 w-full' 
+                        placeholder='Enter city'
+                        className='border border-gray-300 mt-2 rounded p-3 w-full'
                         value={inputs.city}
                         onChange={handleChange}
                     />
                 </div>
 
                 <div className='mt-4'>
-                    <p className='text-gray-800 font-medium'>Contact</p>
-                    <input 
-                        type="text" 
+                    <p className='text-emerald-800 font-medium'>Contact</p>
+                    <input
+                        type="text"
                         name='contact'
-                        placeholder='Enter contact number or email' 
-                        className='border border-gray-300 mt-2 rounded p-3 w-full' 
+                        placeholder='Enter contact number or email'
+                        className='border border-gray-300 mt-2 rounded p-3 w-full'
                         value={inputs.contact}
                         onChange={handleChange}
                     />

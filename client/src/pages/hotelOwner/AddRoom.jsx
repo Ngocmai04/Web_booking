@@ -91,7 +91,7 @@ const AddRoom = () => {
         <form onSubmit={onSubmitHandler}>
             <Title align='left' font='outfit' title='Add Room' subTitle='Fill in the details carefully and accurate room details, pricing, and amenities, to enhance the user booking experience.' />
             {/* Upload Area For Images */}
-            <p className='text-gray-800 mt-10'>Images</p>
+            <p className='text-red-600 mt-10'>Images</p>
             <div className='grid grid-cols-2 sm:flex gap-4 my-2 flex-wrap'>
                 {Object.keys(images).map((key) => (
                     <label key={key} htmlFor={`roomImage${key}`}>
@@ -105,7 +105,7 @@ const AddRoom = () => {
             <div className='w-full flex max-sm:flex-col sm:gap-4 mt-4'>
 
                 <div className='flex-1 max-w-48'>
-                    <p className='text-gray-800 mt-4'>Hotel</p>
+                    <p className='text-red-600 mt-4'>Hotel</p>
                     <select className='border opacity-70 border-gray-300 mt-1 rounded p-2 w-full' value={selectedHotelId} onChange={(e) => setSelectedHotelId(e.target.value)}>
                         <option value=''>Select Hotel</option>
                         {ownerHotels.map((hotel) => (
@@ -115,7 +115,7 @@ const AddRoom = () => {
                 </div>
 
                 <div className='flex-1 max-w-48'>
-                    <p className='text-gray-800 mt-4'>Room Type</p>
+                    <p className='text-red-600 mt-4'>Room Type</p>
                     <select className='border opacity-70 border-gray-300 mt-1 rounded p-2 w-full' value={inputs.roomType} onChange={(e) => setInputs({ ...inputs, roomType: e.target.value })}>
                         <option value=''>Select Room Type</option>
                         <option value='Single Bed'>Single Bed</option>
@@ -126,13 +126,13 @@ const AddRoom = () => {
                 </div>
 
                 <div>
-                    <p className='mt-4 text-gray-800'>Price <span className='text-xs'>/night</span></p>
+                    <p className='mt-4 text-red-600'>Price <span className='text-xs'>/night</span></p>
                     <input type="number" placeholder='0' className='border border-gray-300 mt-1 rounded p-2 w-24' value={inputs.pricePerNight} onChange={(e) => setInputs({ ...inputs, pricePerNight: e.target.value })} />
                 </div>
 
             </div>
 
-            <p className='text-gray-800 mt-4'>Amenities</p>
+            <p className='text-red-600 mt-4'>Amenities</p>
             <div className='flex flex-col flex-wrap mt-1 text-gray-400 max-w-sm'>
                 {Object.keys(inputs.amenities).map((amenity, index) => (
                     <div key={index}>

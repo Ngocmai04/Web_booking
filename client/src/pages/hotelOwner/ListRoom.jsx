@@ -72,10 +72,10 @@ const ListRoom = () => {
                 <table className='w-full' >
                     <thead className='bg-gray-50 '>
                         <tr>
-                            <th className='py-3 px-4 text-gray-800 font-medium'>Name</th>
-                            <th className='py-3 px-4 text-gray-800 font-medium max-sm:hidden'>Facility</th>
-                            <th className='py-3 px-4 text-gray-800 font-medium'>Price / night</th>
-                            <th className='py-3 px-4 text-gray-800 font-medium text-center'>Actions</th>
+                            <th className='py-3 px-4 text-emerald-800 font-medium'>Name</th>
+                            <th className='py-3 px-4 text-emerald-800 font-medium max-sm:hidden'>Facility</th>
+                            <th className='py-3 px-4 text-emerald-800 font-medium'>Price / night</th>
+                            <th className='py-3 px-4 text-emerald-800 font-medium text-center'>Actions</th>
                         </tr>
                     </thead>
                     <tbody className='text-sm'>

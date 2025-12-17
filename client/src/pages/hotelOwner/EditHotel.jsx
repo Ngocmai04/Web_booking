@@ -81,12 +81,12 @@ const EditHotel = () => {
 
             <div className='w-full max-w-2xl'>
                 <div className='mt-6'>
-                    <p className='text-gray-800 font-medium'>Hotel Name</p>
-                    <input 
-                        type="text" 
+                    <p className='text-emerald-800 font-medium'>Hotel Name</p>
+                    <input
+                        type="text"
                         name='name'
-                        placeholder='Enter hotel name' 
-                        className='border border-gray-300 mt-2 rounded p-3 w-full' 
+                        placeholder='Enter hotel name'
+                        className='border border-gray-300 mt-2 rounded p-3 w-full'
                         value={inputs.name}
                         onChange={handleChange}
                     />
@@ -115,38 +115,38 @@ const EditHotel = () => {
                 </div>
 
                 <div className='mt-4'>
-                    <p className='text-gray-800 font-medium'>City</p>
-                    <input 
-                        type="text" 
+                    <p className='text-emerald-800 font-medium'>City</p>
+                    <input
+                        type="text"
                         name='city'
-                        placeholder='Enter city' 
-                        className='border border-gray-300 mt-2 rounded p-3 w-full' 
+                        placeholder='Enter city'
+                        className='border border-gray-300 mt-2 rounded p-3 w-full'
                         value={inputs.city}
                         onChange={handleChange}
                     />
                 </div>
 
                 <div className='mt-4'>
-                    <p className='text-gray-800 font-medium'>Contact</p>
-                    <input 
-                        type="text" 
+                    <p className='text-emerald-800 font-medium'>Contact</p>
+                    <input
+                        type="text"
                         name='contact'
-                        placeholder='Enter contact number or email' 
-                        className='border border-gray-300 mt-2 rounded p-3 w-full' 
+                        placeholder='Enter contact number or email'
+                        className='border border-gray-300 mt-2 rounded p-3 w-full'
                         value={inputs.contact}
                         onChange={handleChange}
                     />
                 </div>
 
                 <div className='flex gap-4 mt-8'>
-                    <button 
+                    <button
                         type='submit'
                         className='bg-blue-600 text-white px-8 py-3 rounded cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed font-medium hover:bg-blue-700 transition'
                         disabled={loading}
                     >
                         {loading ? "Updating..." : "Update Hotel"}
                     </button>
-                    <button 
+                    <button
                         type='button'
                         onClick={() => navigate('/owner/hotels')}
                         className='bg-gray-600 text-white px-8 py-3 rounded cursor-pointer font-medium hover:bg-gray-700 transition'

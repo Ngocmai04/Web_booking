@@ -62,14 +62,14 @@ const Dashboard = () => {
                     <img className='max-sm:hidden h-10' src={assets.totalBookingIcon} alt="" />
                     <div className='flex flex-col sm:ml-4 font-medium'>
                         <p className='text-blue-500 text-lg'>Total Bookings</p>
-                        <p className='text-neutral-400 text-base'>{ dashboardData.totalBookings }</p>
+                        <p className='text-neutral-400 text-base'>{dashboardData.totalBookings}</p>
                     </div>
                 </div>
                 <div className='bg-primary/3 border border-primary/10 rounded flex p-4 pr-8'>
                     <img className='max-sm:hidden h-10' src={assets.totalRevenueIcon} alt="" />
                     <div className='flex flex-col sm:ml-4 font-medium'>
                         <p className='text-blue-500 text-lg'>Total Revenue</p>
-                        <p className='text-neutral-400 text-base'>{currency} { dashboardData.totalRevenue }</p>
+                        <p className='text-neutral-400 text-base'>{currency} {dashboardData.totalRevenue}</p>
                     </div>
                 </div>
             </div>
@@ -80,10 +80,10 @@ const Dashboard = () => {
                 <table className='w-full' >
                     <thead className='bg-gray-50'>
                         <tr>
-                            <th className='py-3 px-4 text-gray-800 font-medium'>User Name</th>
-                            <th className='py-3 px-4 text-gray-800 font-medium max-sm:hidden'>Room Name</th>
-                            <th className='py-3 px-4 text-gray-800 font-medium text-center'>Total Amount</th>
-                            <th className='py-3 px-4 text-gray-800 font-medium text-center'>Payment Status</th>
+                            <th className='py-3 px-4 text-emerald-800 font-medium'>User Name</th>
+                            <th className='py-3 px-4 text-emerald-800 font-medium max-sm:hidden'>Room Name</th>
+                            <th className='py-3 px-4 text-emerald-800 font-medium text-center'>Total Amount</th>
+                            <th className='py-3 px-4 text-emerald-800 font-medium text-center'>Payment Status</th>
                         </tr>
                     </thead>
                     <tbody className='text-sm'>
