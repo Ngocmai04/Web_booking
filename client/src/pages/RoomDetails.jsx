@@ -14,10 +14,36 @@ const RoomDetails = () => {
     const [checkInDate, setCheckInDate] = useState(null);
     const [checkOutDate, setCheckOutDate] = useState(null);
     const [guests, setGuests] = useState(1);
-
     const [isAvailable, setIsAvailable] = useState(false);
+    const [showAllImages, setShowAllImages] = useState(false);
+    const [showReviewsSidebar, setShowReviewsSidebar] = useState(false);
 
-    // Check if the Room is Available
+    // Review form states
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    const [reviewData, setReviewData] = useState({
+        rating: 5,
+        staffRating: 5,
+        serviceRating: 5,
+        cleanlinessRating: 5,
+        comment: ''
+    });
+
+    // Mock reviews data
+    const [reviews, setReviews] = useState([
+        { id: 1, name: "Sarah Johnson", avatar: "https://i.pravatar.cc/150?img=1", rating: 5, date: "Dec 10, 2024", comment: "Amazing Christmas experience! The decorations were stunning and the service was exceptional. Highly recommend!", staff: 5, service: 5, cleanliness: 5 },
+        { id: 2, name: "Michael Chen", avatar: "https://i.pravatar.cc/150?img=2", rating: 4, date: "Dec 8, 2024", comment: "Great location and beautiful Christmas ambiance. Room was cozy and comfortable.", staff: 4, service: 5, cleanliness: 4 },
+        { id: 3, name: "Emma Williams", avatar: "https://i.pravatar.cc/150?img=3", rating: 5, date: "Dec 5, 2024", comment: "Perfect holiday getaway! The festive atmosphere made our stay magical.", staff: 5, service: 4, cleanliness: 5 },
+        { id: 4, name: "David Brown", avatar: "https://i.pravatar.cc/150?img=4", rating: 4, date: "Dec 3, 2024", comment: "Lovely property with excellent Christmas decorations. Staff was very friendly.", staff: 5, service: 4, cleanliness: 4 },
+        { id: 5, name: "Lisa Anderson", avatar: "https://i.pravatar.cc/150?img=5", rating: 5, date: "Nov 30, 2024", comment: "Absolutely wonderful! The best Christmas stay we've ever had.", staff: 5, service: 5, cleanliness: 5 },
+    ]);
+
+    const avgRatings = {
+        overall: 4.6,
+        staff: 4.8,
+        service: 4.6,
+        cleanliness: 4.6
+    };
+
     const checkAvailability = async () => {
         try {
             if (checkInDate >= checkOutDate) {
@@ -42,7 +68,6 @@ const RoomDetails = () => {
         }
     }
 
-    // onSubmitHandler function to check availability & book the room
     const onSubmitHandler = async (e) => {
         try {
             e.preventDefault();
@@ -63,287 +88,594 @@ const RoomDetails = () => {
         }
     }
 
+    const handleSubmitReview = (e) => {
+        e.preventDefault();
+        const newReview = {
+            id: reviews.length + 1,
+            name: "You",
+            avatar: "https://i.pravatar.cc/150?img=10",
+            rating: reviewData.rating,
+            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            comment: reviewData.comment,
+            staff: reviewData.staffRating,
+            service: reviewData.serviceRating,
+            cleanliness: reviewData.cleanlinessRating
+        };
+        
+        setReviews([newReview, ...reviews]);
+        toast.success('🎄 Review submitted successfully!');
+        setShowReviewForm(false);
+        setReviewData({
+            rating: 5,
+            staffRating: 5,
+            serviceRating: 5,
+            cleanlinessRating: 5,
+            comment: ''
+        });
+    };
+
     useEffect(() => {
         const room = rooms.find(room => room._id === id);
         room && setRoom(room);
         room && setMainImage(room.images[0]);
     }, [rooms, id]);
 
-    return room && (
-        <div className='relative py-24 md:py-32 px-4 md:px-12 lg:px-20 xl:px-28 bg-gradient-to-b from-emerald-900 via-red-950 to-emerald-950 overflow-hidden'>
+    const displayedReviews = reviews.slice(0, 3);
+    const remainingImages = room?.images.length > 5 ? room.images.length - 5 : 0;
 
-            {/* Magical Christmas Background */}
-            <div className="fixed inset-0 pointer-events-none z-0">
-                {/* Snowflakes */}
-                {[...Array(50)].map((_, i) => (
-                    <div
-                        key={`snow-${i}`}
-                        className="absolute text-white animate-snow-fall"
-                        style={{
-                            left: `${Math.random() * 100}%`,
-                            animationDuration: `${10 + Math.random() * 15}s`,
-                            animationDelay: `${Math.random() * 8}s`,
-                            fontSize: `${8 + Math.random() * 12}px`,
-                            opacity: 0.6 + Math.random() * 0.4,
-                        }}
+    const StarRatingInput = ({ value, onChange, label, color = "yellow" }) => (
+        <div className="flex flex-col gap-2">
+            <label className="font-semibold text-gray-700">{label}</label>
+            <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                        key={star}
+                        type="button"
+                        onClick={() => onChange(star)}
+                        className={`text-3xl transition-all hover:scale-110 ${star <= value ? `text-${color}-500` : 'text-gray-300'}`}
                     >
-                        ❄
-                    </div>
+                        ★
+                    </button>
                 ))}
-
-                {/* Christmas Lights Effect */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-green-500 via-yellow-400 via-red-500 to-green-500 opacity-70 animate-pulse"></div>
             </div>
+        </div>
+    );
 
-            <style>{`
-                @keyframes snow-fall {
-                    0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; }
-                    10% { opacity: 1; }
-                    90% { opacity: 1; }
-                    100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
-                }
-                .animate-snow-fall {
-                    animation: snow-fall linear infinite;
-                }
-                @keyframes shimmer {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.6; }
-                }
-                .animate-shimmer {
-                    animation: shimmer 2s ease-in-out infinite;
-                }
-            `}</style>
+    if (!room) return null;
 
-            <div className='relative z-10 max-w-7xl mx-auto'>
-                {/* Festive Header Card */}
-                <div className="bg-gradient-to-br from-red-600/90 via-green-600/90 to-red-600/90 backdrop-blur-sm p-8 rounded-3xl shadow-2xl border-4 border-yellow-400/50 mb-8">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <span className="text-4xl animate-shimmer">🎄</span>
-                                <h1 className="text-3xl md:text-5xl font-playfair font-extrabold text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
-                                    {room.hotel.name}
-                                </h1>
-                            </div>
-                            <span className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white font-semibold text-sm border-2 border-white/40">
-                                ✨ {room.roomType}
-                            </span>
-
-                            <div className='flex items-center gap-4 mt-4'>
-                                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                                    <StarRating />
-                                    <p className='text-white font-medium text-sm'>⭐ 200+ reviews</p>
-                                </div>
-                            </div>
-
-                            <div className='flex items-center gap-2 mt-3 text-white/90'>
-                                <span className="text-xl">📍</span>
-                                <span className="text-sm">{room.hotel.address}</span>
+    return (
+        <>
+            {/* Reviews Sidebar */}
+            {showReviewsSidebar && (
+                <div className="fixed inset-0 bg-black/60 z-[9999] flex justify-end" onClick={() => setShowReviewsSidebar(false)}>
+                    <div 
+                        className="w-full md:w-[600px] h-full bg-gradient-to-br from-red-50 via-white to-green-50 shadow-2xl overflow-y-auto animate-slideIn"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ animation: 'slideIn 0.3s ease-out' }}
+                    >
+                        {/* Sidebar Header */}
+                        <div className="sticky top-0 bg-gradient-to-r from-red-600 via-green-600 to-red-600 p-6 border-b-4 border-yellow-400 z-10">
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                                    ⭐ All Reviews ({reviews.length})
+                                </h2>
+                                <button 
+                                    onClick={() => setShowReviewsSidebar(false)}
+                                    className="text-white text-3xl hover:scale-110 transition-transform bg-white/20 rounded-full w-10 h-10 flex items-center justify-center"
+                                >
+                                    ✕
+                                </button>
                             </div>
                         </div>
 
-                        {/* Christmas Sale Badge */}
-                        {room.discount > 0 && (
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-50 animate-pulse"></div>
-                                <div className="relative bg-gradient-to-br from-yellow-400 via-yellow-300 to-yellow-500 px-8 py-6 rounded-2xl shadow-2xl border-4 border-red-600 transform hover:scale-105 transition-transform">
-                                    <p className="text-red-700 font-black text-4xl text-center">
-                                        🎅 {room.discount}%
-                                    </p>
-                                    <p className="text-red-800 font-bold text-lg text-center mt-1">OFF</p>
-                                    <div className="absolute -top-2 -right-2 text-3xl animate-bounce">⭐</div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Room Images Gallery */}
-                <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8'>
-                    <div className='relative group'>
-                        <div className="absolute inset-0 bg-gradient-to-t from-red-600/30 to-transparent rounded-2xl z-10 pointer-events-none"></div>
-                        <img className='w-full h-[400px] lg:h-[500px] rounded-2xl shadow-2xl object-cover border-4 border-yellow-400/60 transform group-hover:scale-[1.02] transition-transform duration-300'
-                            src={mainImage} alt='Room Image' />
-                        <div className="absolute top-4 right-4 z-20 bg-red-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg">
-                            ✨ Featured
-                        </div>
-                    </div>
-
-                    <div className='grid grid-cols-2 gap-4'>
-                        {room?.images.length > 1 && room.images.slice(0, 4).map((image, index) => (
-                            <div key={index} className='relative group cursor-pointer' onClick={() => setMainImage(image)}>
-                                <img
-                                    className={`w-full h-[190px] lg:h-[240px] rounded-xl shadow-lg object-cover border-4 transition-all duration-300 group-hover:scale-105 ${mainImage === image
-                                        ? 'border-yellow-400 shadow-yellow-400/50 shadow-2xl'
-                                        : 'border-green-400/60 hover:border-red-400/60'
-                                        }`}
-                                    src={image} alt='Room Image' />
-                                {mainImage === image && (
-                                    <div className="absolute inset-0 bg-yellow-400/20 rounded-xl flex items-center justify-center">
-                                        <span className="text-4xl">✨</span>
+                        {/* Reviews List */}
+                        <div className="p-6 space-y-4">
+                            {reviews.map((review) => (
+                                <div key={review.id} className='bg-white p-6 rounded-2xl border-3 border-red-200 shadow-lg hover:shadow-2xl transition-all'>
+                                    <div className='flex items-center gap-3 mb-4'>
+                                        <img src={review.avatar} alt={review.name} className='w-14 h-14 rounded-full border-3 border-green-400 shadow-md' />
+                                        <div className='flex-1'>
+                                            <p className='font-bold text-gray-800 text-lg'>{review.name}</p>
+                                            <p className='text-sm text-gray-500'>{review.date}</p>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
 
-                {/* Room Highlights & Price */}
-                <div className='bg-gradient-to-br from-white via-red-50 to-green-50 p-8 rounded-3xl shadow-2xl border-4 border-red-200 mb-8'>
-                    <div className='flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6'>
-                        <div className='flex-1'>
-                            <h2 className='text-3xl md:text-4xl font-playfair font-bold bg-gradient-to-r from-red-700 via-green-700 to-red-700 bg-clip-text text-transparent mb-6 flex items-center gap-3'>
-                                🎅 Christmas Luxury Experience
-                            </h2>
-                            <div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
-                                {room.amenities.map((item, index) => (
-                                    <div key={index} className='flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-red-100 to-green-100 shadow-md border-2 border-red-200 hover:shadow-xl hover:scale-105 transition-all cursor-pointer'>
-                                        <img src={facilityIcons[item]} alt={item} className='w-6 h-6' />
-                                        <p className='text-sm font-semibold text-gray-700'>{item}</p>
+                                    <div className='flex items-center gap-1 mb-4'>
+                                        {[...Array(5)].map((_, i) => (
+                                            <span key={i} className={`text-2xl ${i < review.rating ? 'text-yellow-500' : 'text-gray-300'}`}>★</span>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-                        </div>
 
-                        {/* Festive Price Card */}
-                        <div className='relative'>
-                            <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-green-500 blur-xl opacity-50"></div>
-                            <div className='relative bg-gradient-to-br from-red-600 via-red-500 to-green-600 text-white px-8 py-6 rounded-2xl shadow-2xl border-4 border-yellow-400 min-w-[200px]'>
-                                <div className="text-center">
-                                    <p className='text-sm font-semibold opacity-90 mb-1'>🎁 Special Price</p>
-                                    <div className="flex items-center justify-center gap-2">
-                                        <p className='text-5xl font-black'>${room.pricePerNight}</p>
+                                    <p className='text-gray-700 leading-relaxed mb-4'>{review.comment}</p>
+
+                                    <div className='grid grid-cols-3 gap-2'>
+                                        <div className='px-3 py-2 bg-red-100 text-red-700 rounded-xl font-semibold text-center'>
+                                            <p className="text-xs">Staff</p>
+                                            <p className="text-lg">{review.staff} ⭐</p>
+                                        </div>
+                                        <div className='px-3 py-2 bg-green-100 text-green-700 rounded-xl font-semibold text-center'>
+                                            <p className="text-xs">Service</p>
+                                            <p className="text-lg">{review.service} ⭐</p>
+                                        </div>
+                                        <div className='px-3 py-2 bg-blue-100 text-blue-700 rounded-xl font-semibold text-center'>
+                                            <p className="text-xs">Clean</p>
+                                            <p className="text-lg">{review.cleanliness} ⭐</p>
+                                        </div>
                                     </div>
-                                    <p className='text-sm opacity-90 mt-1'>/night</p>
                                 </div>
-                                <div className="absolute -top-3 -right-3 text-3xl animate-bounce">🌟</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Booking Form - Christmas Themed */}
-                <form onSubmit={onSubmitHandler} className='bg-gradient-to-br from-white via-green-50 to-red-50 backdrop-blur-sm shadow-2xl p-8 rounded-3xl border-4 border-green-300 mb-10'>
-                    <h3 className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent flex items-center justify-center gap-2">
-                        <span className="text-3xl">🎄</span>
-                        Book Your Christmas Stay
-                        <span className="text-3xl">🎄</span>
-                    </h3>
-
-                    <div className='flex flex-col lg:flex-row items-stretch gap-6'>
-                        <div className='flex-1 grid grid-cols-1 md:grid-cols-3 gap-6'>
-                            <div className='flex flex-col'>
-                                <label htmlFor='checkInDate' className='font-bold text-red-700 flex items-center gap-2 mb-2 text-lg'>
-                                    🎄 Check-In
-                                </label>
-                                <input
-                                    onChange={(e) => setCheckInDate(e.target.value)}
-                                    id='checkInDate'
-                                    type='date'
-                                    min={new Date().toISOString().split('T')[0]}
-                                    className='w-full rounded-xl border-3 border-red-300 px-4 py-3 outline-none focus:border-red-500 focus:ring-4 focus:ring-red-200 transition-all shadow-md hover:shadow-lg bg-white text-gray-900'
-                                    required
-                                />
-                            </div>
-
-                            <div className='flex flex-col'>
-                                <label htmlFor='checkOutDate' className='font-bold text-green-700 flex items-center gap-2 mb-2 text-lg'>
-                                    🎁 Check-Out
-                                </label>
-                                <input
-                                    onChange={(e) => setCheckOutDate(e.target.value)}
-                                    id='checkOutDate'
-                                    type='date'
-                                    min={checkInDate}
-                                    disabled={!checkInDate}
-                                    className='w-full rounded-xl border-3 border-green-300 px-4 py-3 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-200 transition-all shadow-md hover:shadow-lg bg-white disabled:opacity-50 text-gray-900'
-                                    required
-                                />
-                            </div>
-
-                            <div className='flex flex-col'>
-                                <label htmlFor='guests' className='font-bold text-red-700 flex items-center gap-2 mb-2 text-lg'>
-                                    👥 Guests
-                                </label>
-                                <input
-                                    onChange={(e) => setGuests(e.target.value)}
-                                    value={guests}
-                                    id='guests'
-                                    type='number'
-                                    min="1"
-                                    className='w-full rounded-xl border-3 border-red-300 px-4 py-3 outline-none focus:border-red-500 focus:ring-4 focus:ring-red-200 transition-all shadow-md hover:shadow-lg bg-white text-gray-900'
-                                    required
-                                />
-                            </div>
+                            ))}
                         </div>
 
-                        <button
-                            type='submit'
-                            className='lg:w-64 bg-gradient-to-r from-red-600 via-green-600 to-red-600 hover:from-red-700 hover:via-green-700 hover:to-red-700 active:scale-95 transition-all text-white font-black rounded-2xl px-8 py-4 text-lg cursor-pointer shadow-2xl hover:shadow-red-500/50 border-4 border-yellow-400 relative overflow-hidden group'>
-                            <span className="relative z-10 flex items-center justify-center gap-2">
-                                {isAvailable ? "🎅 Book Now" : "🎄 Check Availability"}
-                            </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        </button>
-                    </div>
-                </form>
-
-                {/* Room Specifications */}
-                <div className='bg-white/95 backdrop-blur-sm p-8 rounded-3xl shadow-2xl border-4 border-green-200 mb-8'>
-                    <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent flex items-center gap-2">
-                        ✨ Room Features
-                    </h3>
-                    <div className="space-y-3">
-                        {roomCommonData.map((spec, index) => (
-                            <div key={index} className='flex items-start gap-4 p-5 rounded-xl hover:bg-gradient-to-r hover:from-red-50 hover:to-green-50 transition-all border-2 border-transparent hover:border-red-200 hover:shadow-lg cursor-pointer group'>
-                                <img className='w-8 h-8 group-hover:scale-110 transition-transform' src={spec.icon} alt={`${spec.title}-icon`} />
-                                <div className="flex-1">
-                                    <p className='text-lg font-bold text-gray-800 mb-1'>{spec.title}</p>
-                                    <p className='text-gray-600 text-sm leading-relaxed'>{spec.description}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Description Card */}
-                <div className='bg-gradient-to-br from-red-50 via-white to-green-50 border-4 border-red-200 p-8 rounded-3xl shadow-xl mb-8'>
-                    <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent">
-                        🏠 About This Property
-                    </h3>
-                    <p className='text-gray-700 leading-relaxed text-lg'>
-                        Guests will be allocated on the ground floor according to availability. You get a comfortable two bedroom apartment that has a true city feeling. The price quoted is for two guests; at the guest slot, please mark the number of guests to get the exact price for groups. The guests will be allocated ground floor according to availability. Experience comfort and luxury in this beautifully appointed space.
-                    </p>
-                </div>
-
-                {/* Host Information Card */}
-                <div className='bg-gradient-to-br from-white to-green-50 p-8 rounded-3xl shadow-2xl border-4 border-green-300'>
-                    <div className='flex flex-col md:flex-row md:items-center gap-6'>
-                        <div className='relative'>
-                            <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-green-500 rounded-full blur-xl opacity-50"></div>
-                            <img
-                                className='relative h-24 w-24 md:h-28 md:w-28 rounded-full border-4 border-yellow-400 shadow-2xl object-cover'
-                                src={room.hotel.owner.image}
-                                alt='Host'
-                            />
-                        </div>
-                        <div className='flex-1'>
-                            <p className='text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent mb-2'>
-                                Hosted by {room.hotel.name}
-                            </p>
-                            <div className='flex items-center gap-3'>
-                                <StarRating />
-                                <p className='text-gray-700 font-medium'>⭐ 200+ reviews</p>
-                            </div>
-                            <button className='mt-4 px-8 py-3 rounded-xl text-white bg-gradient-to-r from-red-600 to-green-600 hover:from-red-700 hover:to-green-700 transition-all cursor-pointer shadow-lg hover:shadow-xl font-bold text-lg border-2 border-yellow-400 hover:scale-105 active:scale-95'>
-                                📞 Contact Host
+                        {/* Write Review Section in Sidebar */}
+                        <div className="sticky bottom-0 bg-gradient-to-br from-yellow-100 to-green-100 p-6 border-t-4 border-red-300">
+                            <button 
+                                onClick={() => {
+                                    setShowReviewsSidebar(false);
+                                    setShowReviewForm(true);
+                                }}
+                                className="w-full bg-gradient-to-r from-red-600 to-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all border-3 border-yellow-400"
+                            >
+                                ✍️ Write Your Review
                             </button>
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Write Review Modal */}
+            {showReviewForm && (
+                <div className="fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center p-4" onClick={() => setShowReviewForm(false)}>
+                    <div 
+                        className="max-w-2xl w-full max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white via-red-50 to-green-50 rounded-3xl p-8 border-4 border-yellow-400 shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent flex items-center gap-2">
+                                ✍️ Write Your Review
+                            </h2>
+                            <button 
+                                onClick={() => setShowReviewForm(false)}
+                                className="text-gray-500 text-3xl hover:scale-110 transition-transform hover:text-red-600"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="space-y-6">
+                            {/* Overall Rating */}
+                            <div className="bg-gradient-to-r from-yellow-100 to-yellow-200 p-6 rounded-2xl border-3 border-yellow-400">
+                                <StarRatingInput 
+                                    value={reviewData.rating}
+                                    onChange={(val) => setReviewData({...reviewData, rating: val})}
+                                    label="⭐ Overall Rating"
+                                    color="yellow"
+                                />
+                            </div>
+
+                            {/* Staff Rating */}
+                            <div className="bg-gradient-to-r from-red-100 to-red-200 p-6 rounded-2xl border-3 border-red-400">
+                                <StarRatingInput 
+                                    value={reviewData.staffRating}
+                                    onChange={(val) => setReviewData({...reviewData, staffRating: val})}
+                                    label="👥 Staff Rating"
+                                    color="red"
+                                />
+                            </div>
+
+                            {/* Service Rating */}
+                            <div className="bg-gradient-to-r from-green-100 to-green-200 p-6 rounded-2xl border-3 border-green-400">
+                                <StarRatingInput 
+                                    value={reviewData.serviceRating}
+                                    onChange={(val) => setReviewData({...reviewData, serviceRating: val})}
+                                    label="🔔 Service Rating"
+                                    color="green"
+                                />
+                            </div>
+
+                            {/* Cleanliness Rating */}
+                            <div className="bg-gradient-to-r from-blue-100 to-blue-200 p-6 rounded-2xl border-3 border-blue-400">
+                                <StarRatingInput 
+                                    value={reviewData.cleanlinessRating}
+                                    onChange={(val) => setReviewData({...reviewData, cleanlinessRating: val})}
+                                    label="✨ Cleanliness Rating"
+                                    color="blue"
+                                />
+                            </div>
+
+                            {/* Comment */}
+                            <div>
+                                <label className="font-bold text-gray-700 mb-2 block text-lg">💬 Your Review</label>
+                                <textarea
+                                    value={reviewData.comment}
+                                    onChange={(e) => setReviewData({...reviewData, comment: e.target.value})}
+                                    placeholder="Share your experience with us..."
+                                    rows="5"
+                                    className="w-full rounded-2xl border-3 border-green-300 px-4 py-3 outline-none focus:border-red-500 focus:ring-4 focus:ring-red-200 transition-all shadow-md resize-none"
+                                    required
+                                />
+                            </div>
+
+                            {/* Submit Button */}
+                            <button
+                                onClick={handleSubmitReview}
+                                disabled={!reviewData.comment.trim()}
+                                className="w-full bg-gradient-to-r from-red-600 via-green-600 to-red-600 hover:from-red-700 hover:via-green-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black rounded-2xl px-8 py-4 text-xl shadow-2xl hover:shadow-red-500/50 border-4 border-yellow-400 transition-all hover:scale-105 active:scale-95"
+                            >
+                                🎄 Submit Review
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Gallery Modal */}
+            {showAllImages && (
+                <div className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4" onClick={() => setShowAllImages(false)}>
+                    <div className="max-w-6xl w-full max-h-[90vh] overflow-y-auto bg-gradient-to-br from-red-900 to-green-900 rounded-3xl p-6 border-4 border-yellow-400" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                                🎄 All Photos ({room.images.length})
+                            </h3>
+                            <button onClick={() => setShowAllImages(false)} className="text-white text-3xl hover:scale-110 transition-transform">✕</button>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {room.images.map((image, index) => (
+                                <img key={index} src={image} alt={`Room ${index + 1}`} className="w-full h-64 object-cover rounded-xl border-4 border-yellow-400/60 hover:border-green-400 transition-all cursor-pointer hover:scale-105" />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Main Content */}
+            <div className='relative py-24 md:py-32 px-4 md:px-12 lg:px-20 xl:px-28 bg-gradient-to-b from-emerald-900 via-red-950 to-emerald-950 overflow-hidden min-h-screen'>
+                {/* Magical Christmas Background */}
+                <div className="fixed inset-0 pointer-events-none z-0">
+                    {[...Array(50)].map((_, i) => (
+                        <div
+                            key={`snow-${i}`}
+                            className="absolute text-white animate-snow-fall"
+                            style={{
+                                left: `${Math.random() * 100}%`,
+                                animationDuration: `${10 + Math.random() * 15}s`,
+                                animationDelay: `${Math.random() * 8}s`,
+                                fontSize: `${8 + Math.random() * 12}px`,
+                                opacity: 0.6 + Math.random() * 0.4,
+                            }}
+                        >
+                            ❄
+                        </div>
+                    ))}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-green-500 via-yellow-400 via-red-500 to-green-500 opacity-70 animate-pulse"></div>
+                </div>
+
+                <style>{`
+                    @keyframes snow-fall {
+                        0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; }
+                        10% { opacity: 1; }
+                        90% { opacity: 1; }
+                        100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+                    }
+                    @keyframes shimmer {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.6; }
+                    }
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); }
+                        to { transform: translateX(0); }
+                    }
+                `}</style>
+
+                <div className='relative z-10 max-w-7xl mx-auto'>
+                    {/* Header with Hotel Name & Price */}
+                    <div className="bg-gradient-to-br from-red-600/90 via-green-600/90 to-red-600/90 backdrop-blur-sm p-6 rounded-3xl shadow-2xl border-4 border-yellow-400/50 mb-6">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="text-4xl animate-shimmer">🎄</span>
+                                    <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
+                                        {room.hotel.name}
+                                    </h1>
+                                </div>
+                                <span className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white font-semibold text-sm border-2 border-white/40 mb-3">
+                                    ✨ {room.roomType}
+                                </span>
+                                <div className='flex items-center gap-2 text-white/90'>
+                                    <span className="text-lg">📍</span>
+                                    <span className="text-sm">{room.hotel.address}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                {room.discount > 0 && (
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-50 animate-pulse"></div>
+                                        <div className="relative bg-gradient-to-br from-yellow-400 to-yellow-500 px-6 py-4 rounded-2xl shadow-2xl border-4 border-red-600">
+                                            <p className="text-red-700 font-black text-3xl text-center">🎅 {room.discount}%</p>
+                                            <p className="text-red-800 font-bold text-sm text-center">OFF</p>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                <div className='relative'>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-green-500 blur-xl opacity-50"></div>
+                                    <div className='relative bg-gradient-to-br from-red-600 to-green-600 text-white px-6 py-4 rounded-2xl shadow-2xl border-4 border-yellow-400'>
+                                        <p className='text-sm font-semibold opacity-90 text-center'>🎁 From</p>
+                                        <p className='text-4xl font-black text-center'>${room.pricePerNight}</p>
+                                        <p className='text-xs opacity-90 text-center'>/night</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Main Content Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                        {/* Left Column - Images */}
+                        <div className="lg:col-span-2">
+                            <div className='bg-white/95 backdrop-blur-sm p-4 rounded-3xl shadow-2xl border-4 border-green-300'>
+                                {/* Main Image */}
+                                <div className='relative group mb-4'>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-red-600/30 to-transparent rounded-2xl z-10 pointer-events-none"></div>
+                                    <img 
+                                        className='w-full h-[400px] rounded-2xl object-cover border-4 border-yellow-400/60 transform group-hover:scale-[1.02] transition-transform duration-300'
+                                        src={mainImage} 
+                                        alt='Room Image' 
+                                    />
+                                    <div className="absolute top-4 right-4 z-20 bg-red-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg">
+                                        ✨ Featured
+                                    </div>
+                                </div>
+
+                                {/* Thumbnail Grid */}
+                                <div className='grid grid-cols-5 gap-2'>
+                                    {room.images.slice(0, 5).map((image, index) => (
+                                        <div 
+                                            key={index} 
+                                            className={`relative group cursor-pointer ${index === 4 && remainingImages > 0 ? 'overflow-hidden' : ''}`}
+                                            onClick={() => index === 4 && remainingImages > 0 ? setShowAllImages(true) : setMainImage(image)}
+                                        >
+                                            <img
+                                                className={`w-full h-20 rounded-lg object-cover border-3 transition-all duration-300 group-hover:scale-105 ${mainImage === image ? 'border-yellow-400 shadow-yellow-400/50 shadow-lg' : 'border-green-300 hover:border-red-300'}`}
+                                                src={image} 
+                                                alt='Room Image' 
+                                            />
+                                            {index === 4 && remainingImages > 0 && (
+                                                <div className="absolute inset-0 bg-black/70 rounded-lg flex items-center justify-center">
+                                                    <span className="text-white font-bold text-lg">+{remainingImages}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column - Booking Form */}
+                        <div className="lg:col-span-1">
+                            <div className='bg-gradient-to-br from-white via-green-50 to-red-50 backdrop-blur-sm shadow-2xl p-6 rounded-3xl border-4 border-green-300 sticky top-24'>
+                                <h3 className="text-xl font-bold text-center mb-4 bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent flex items-center justify-center gap-2">
+                                    <span className="text-2xl">🎄</span>
+                                    Book Your Stay
+                                </h3>
+
+                                <div className='space-y-4'>
+                                    <div>
+                                        <label className='font-bold text-red-700 flex items-center gap-2 mb-2'>
+                                            🎄 Check-In
+                                        </label>
+                                        <input
+                                            onChange={(e) => setCheckInDate(e.target.value)}
+                                            type='date'
+                                            min={new Date().toISOString().split('T')[0]}
+                                            className='w-full rounded-xl border-3 border-red-300 px-4 py-3 outline-none focus:border-red-500 focus:ring-4 focus:ring-red-200 transition-all shadow-md bg-white'
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className='font-bold text-green-700 flex items-center gap-2 mb-2'>
+                                            🎁 Check-Out
+                                        </label>
+                                        <input
+                                            onChange={(e) => setCheckOutDate(e.target.value)}
+                                            type='date'
+                                            min={checkInDate}
+                                            disabled={!checkInDate}
+                                            className='w-full rounded-xl border-3 border-green-300 px-4 py-3 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-200 transition-all shadow-md bg-white disabled:opacity-50'
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className='font-bold text-red-700 flex items-center gap-2 mb-2'>
+                                            👥 Guests
+                                        </label>
+                                        <input
+                                            onChange={(e) => setGuests(e.target.value)}
+                                            value={guests}
+                                            type='number'
+                                            min="1"
+                                            className='w-full rounded-xl border-3 border-red-300 px-4 py-3 outline-none focus:border-red-500 focus:ring-4 focus:ring-red-200 transition-all shadow-md bg-white'
+                                            required
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={onSubmitHandler}
+                                        type='button'
+                                        className='w-full bg-gradient-to-r from-red-600 via-green-600 to-red-600 hover:from-red-700 hover:via-green-700 hover:to-red-700 active:scale-95 transition-all text-white font-black rounded-2xl px-6 py-4 text-lg cursor-pointer shadow-2xl hover:shadow-red-500/50 border-4 border-yellow-400 relative overflow-hidden group'>
+                                        <span className="relative z-10 flex items-center justify-center gap-2">
+                                            {isAvailable ? "🎅 Book Now" : "🎄 Check Availability"}
+                                        </span>
+                                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Amenities & Features */}
+                    <div className='bg-gradient-to-br from-white via-red-50 to-green-50 p-6 rounded-3xl shadow-2xl border-4 border-red-200 mb-6'>
+                        <h2 className='text-2xl font-bold bg-gradient-to-r from-red-700 to-green-700 bg-clip-text text-transparent mb-4 flex items-center gap-2'>
+                            ✨ Amenities & Features
+                        </h2>
+                        
+                        <div className='grid grid-cols-2 md:grid-cols-4 gap-3 mb-6'>
+                            {room.amenities.map((item, index) => (
+                                <div key={index} className='flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-red-100 to-green-100 shadow-md border-2 border-red-200 hover:shadow-xl hover:scale-105 transition-all cursor-pointer'>
+                                    <img src={facilityIcons[item]} alt={item} className='w-5 h-5' />
+                                    <p className='text-sm font-semibold text-gray-700'>{item}</p>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="space-y-3">
+                            {roomCommonData.slice(0, 3).map((spec, index) => (
+                                <div key={index} className='flex items-start gap-3 p-4 rounded-xl hover:bg-gradient-to-r hover:from-red-50 hover:to-green-50 transition-all border-2 border-transparent hover:border-red-200 cursor-pointer'>
+                                    <img className='w-6 h-6' src={spec.icon} alt={spec.title} />
+                                    <div>
+                                        <p className='font-bold text-gray-800'>{spec.title}</p>
+                                        <p className='text-gray-600 text-sm'>{spec.description}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Reviews Section */}
+                    <div className='bg-gradient-to-br from-white via-green-50 to-red-50 p-6 rounded-3xl shadow-2xl border-4 border-green-300 mb-6'>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className='text-2xl font-bold bg-gradient-to-r from-red-700 to-green-700 bg-clip-text text-transparent flex items-center gap-2'>
+                                ⭐ Guest Reviews
+                            </h2>
+                            <div className="flex gap-3">
+                                <button 
+                                    onClick={() => setShowReviewForm(true)}
+                                    className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg border-2 border-red-500"
+                                >
+                                    ✍️ Write Review
+                                </button>
+                                <button 
+                                    onClick={() => setShowReviewsSidebar(true)}
+                                    className="px-4 py-2 bg-gradient-to-r from-red-500 to-green-500 text-white rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg"
+                                >
+                                    View All ({reviews.length})
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Overall Ratings */}
+                        <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
+                            <div className='bg-gradient-to-br from-yellow-100 to-yellow-200 p-4 rounded-2xl border-3 border-yellow-400 shadow-lg text-center'>
+                                <p className='text-3xl font-black text-yellow-700'>{avgRatings.overall}</p>
+                                <p className='text-sm font-bold text-yellow-800 mt-1'>Overall</p>
+                                <div className='flex justify-center mt-2'>
+                                    {[...Array(5)].map((_, i) => (
+                                        <span key={i} className={`text-lg ${i < Math.round(avgRatings.overall) ? 'text-yellow-500' : 'text-gray-300'}`}>★</span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className='bg-gradient-to-br from-red-100 to-red-200 p-4 rounded-2xl border-3 border-red-400 shadow-lg text-center'>
+                                <p className='text-3xl font-black text-red-700'>{avgRatings.staff}</p>
+                                <p className='text-sm font-bold text-red-800 mt-1'>Staff</p>
+                                <div className='flex justify-center mt-2'>
+                                    {[...Array(5)].map((_, i) => (
+                                        <span key={i} className={`text-lg ${i < Math.round(avgRatings.staff) ? 'text-red-500' : 'text-gray-300'}`}>★</span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className='bg-gradient-to-br from-green-100 to-green-200 p-4 rounded-2xl border-3 border-green-400 shadow-lg text-center'>
+                                <p className='text-3xl font-black text-green-700'>{avgRatings.service}</p>
+                                <p className='text-sm font-bold text-green-800 mt-1'>Service</p>
+                                <div className='flex justify-center mt-2'>
+                                    {[...Array(5)].map((_, i) => (
+                                        <span key={i} className={`text-lg ${i < Math.round(avgRatings.service) ? 'text-green-500' : 'text-gray-300'}`}>★</span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className='bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-2xl border-3 border-blue-400 shadow-lg text-center'>
+                                <p className='text-3xl font-black text-blue-700'>{avgRatings.cleanliness}</p>
+                                <p className='text-sm font-bold text-blue-800 mt-1'>Cleanliness</p>
+                                <div className='flex justify-center mt-2'>
+                                    {[...Array(5)].map((_, i) => (
+                                        <span key={i} className={`text-lg ${i < Math.round(avgRatings.cleanliness) ? 'text-blue-500' : 'text-gray-300'}`}>★</span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Review Cards Preview */}
+                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                            {displayedReviews.map((review) => (
+                                <div key={review.id} className='bg-white p-5 rounded-2xl border-3 border-red-200 shadow-lg hover:shadow-2xl hover:scale-105 transition-all cursor-pointer'>
+                                    <div className='flex items-center gap-3 mb-3'>
+                                        <img src={review.avatar} alt={review.name} className='w-12 h-12 rounded-full border-3 border-green-400 shadow-md' />
+                                        <div className='flex-1'>
+                                            <p className='font-bold text-gray-800'>{review.name}</p>
+                                            <p className='text-xs text-gray-500'>{review.date}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className='flex items-center gap-1 mb-3'>
+                                        {[...Array(5)].map((_, i) => (
+                                            <span key={i} className={`text-lg ${i < review.rating ? 'text-yellow-500' : 'text-gray-300'}`}>★</span>
+                                        ))}
+                                    </div>
+
+                                    <p className='text-gray-700 text-sm leading-relaxed mb-3'>{review.comment}</p>
+
+                                    <div className='flex items-center gap-2 text-xs flex-wrap'>
+                                        <span className='px-2 py-1 bg-red-100 text-red-700 rounded-full font-semibold'>Staff: {review.staff}⭐</span>
+                                        <span className='px-2 py-1 bg-green-100 text-green-700 rounded-full font-semibold'>Service: {review.service}⭐</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className='bg-gradient-to-br from-red-50 via-white to-green-50 border-4 border-red-200 p-6 rounded-3xl shadow-xl mb-6'>
+                        <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent">
+                            🏠 About This Property
+                        </h3>
+                        <p className='text-gray-700 leading-relaxed'>
+                            Guests will be allocated on the ground floor according to availability. You get a comfortable two bedroom apartment that has a true city feeling. The price quoted is for two guests; at the guest slot, please mark the number of guests to get the exact price for groups. Experience comfort and luxury in this beautifully appointed space.
+                        </p>
+                    </div>
+
+                    {/* Host Information */}
+                    <div className='bg-gradient-to-br from-white to-green-50 p-6 rounded-3xl shadow-2xl border-4 border-green-300'>
+                        <div className='flex flex-col md:flex-row md:items-center gap-6'>
+                            <div className='relative'>
+                                <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-green-500 rounded-full blur-xl opacity-50"></div>
+                                <img
+                                    className='relative h-20 w-20 md:h-24 md:w-24 rounded-full border-4 border-yellow-400 shadow-2xl object-cover'
+                                    src={room.hotel.owner.image}
+                                    alt='Host'
+                                />
+                            </div>
+                            <div className='flex-1'>
+                                <p className='text-2xl font-bold bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent mb-2'>
+                                    Hosted by {room.hotel.name}
+                                </p>
+                                <div className='flex items-center gap-3 mb-3'>
+                                    <StarRating />
+                                    <p className='text-gray-700 font-medium'>⭐ 200+ reviews</p>
+                                </div>
+                                <button className='px-6 py-2 rounded-xl text-white bg-gradient-to-r from-red-600 to-green-600 hover:from-red-700 hover:to-green-700 transition-all shadow-lg hover:shadow-xl font-bold border-2 border-yellow-400 hover:scale-105'>
+                                    📞 Contact Host
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    )
+        </>
+    );
 }
 
-export default RoomDetails
+export default RoomDetails;
