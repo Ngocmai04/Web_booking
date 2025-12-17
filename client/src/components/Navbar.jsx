@@ -39,14 +39,15 @@ const ChristmasLights = () => (
       {[...Array(42)].map((_, i) => (
         <div
           key={i}
-          className={`w-2 h-2 rounded-full mx-4 ${i % 4 === 0
-            ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]"
-            : i % 4 === 1
+          className={`w-2 h-2 rounded-full mx-4 ${
+            i % 4 === 0
+              ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]"
+              : i % 4 === 1
               ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]"
               : i % 4 === 2
-                ? "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]"
-                : "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"
-            }`}
+              ? "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]"
+              : "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"
+          }`}
           style={{
             animation: `twinkle ${1 + (i % 3) * 0.5}s infinite ${i * 0.2}s`,
           }}
@@ -77,6 +78,7 @@ const Navbar = () => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/rooms?search=${encodeURIComponent(searchQuery)}`);
+      setIsMenuOpen(false);
     }
   };
 
@@ -141,27 +143,15 @@ const Navbar = () => {
           animation: snow-fall linear infinite;
           pointer-events: none;
         }
-        @keyframes slide-down {
-          from { 
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to { 
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-slide-down {
-          animation: slide-down 0.3s ease-out;
-        }
       `}</style>
 
       <nav
         className={`fixed top-0 left-0 w-full flex items-center justify-between px-4 md:px-16 lg:px-24 xl:px-32 transition-all duration-500 z-50 overflow-hidden
-        ${isScrolled
+        ${
+          isScrolled
             ? "bg-gradient-to-r from-red-700 via-green-700 to-red-700 shadow-2xl backdrop-blur-lg py-3 md:py-4 border-b-2 border-yellow-400"
             : "py-4 md:py-6 bg-gradient-to-b from-red-600/80 via-green-600/60 to-transparent"
-          }`}
+        }`}
       >
         {/* Christmas Lights Decoration */}
         {!isScrolled && <ChristmasLights />}
@@ -187,10 +177,11 @@ const Navbar = () => {
           <img
             src={assets.logo}
             alt="logo"
-            className={`h-10 transition-all duration-300 ${isScrolled
-              ? "filter brightness-100 drop-shadow-[0_0_15px_rgba(255,215,0,1)]"
-              : "drop-shadow-[0_0_12px_white]"
-              }`}
+            className={`h-10 transition-all duration-300 ${
+              isScrolled
+                ? "filter brightness-100 drop-shadow-[0_0_15px_rgba(255,215,0,1)]"
+                : "drop-shadow-[0_0_12px_white]"
+            }`}
           />
           {!isScrolled && <Snowflake />}
           {isScrolled && <ChristmasBell />}
@@ -203,10 +194,11 @@ const Navbar = () => {
               key={index}
               to={navLink.path}
               className={`group flex flex-col gap-0.5 text-lg font-bold tracking-wide transition-all relative
-              ${isScrolled
+              ${
+                isScrolled
                   ? "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
                   : "text-white drop-shadow-[0_0_12px_rgba(255,255,255,1)]"
-                }`}
+              }`}
               onClick={() => scrollTo(0, 0)}
             >
               <span className="relative">
@@ -227,12 +219,15 @@ const Navbar = () => {
           ))}
 
           {/* Christmas Search Bar */}
-          <form onSubmit={handleSearch} className="relative group">
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-full border-2 transition-all duration-300
-              ${isScrolled
-                ? "bg-white/90 border-red-300 shadow-lg"
-                : "bg-white/20 border-white/50 backdrop-blur-md"
-              }`}>
+          <div className="relative group">
+            <div
+              className={`flex items-center gap-2 px-3 py-2 rounded-full border-2 transition-all duration-300
+              ${
+                isScrolled
+                  ? "bg-white/90 border-red-300 shadow-lg"
+                  : "bg-white/20 border-white/50 backdrop-blur-md"
+              }`}
+            >
               <svg
                 className={`w-5 h-5 transition-colors
                   ${isScrolled ? "text-gray-600" : "text-white"}
@@ -252,38 +247,44 @@ const Navbar = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
                 placeholder="Search hotels..."
                 className={`w-40 lg:w-48 bg-transparent outline-none font-medium transition-all
-                  ${isScrolled
-                    ? "text-gray-700 placeholder-gray-400"
-                    : "text-white placeholder-white/70"
+                  ${
+                    isScrolled
+                      ? "text-gray-700 placeholder-gray-400"
+                      : "text-white placeholder-white/70"
                   }`}
               />
               <button
-                type="submit"
+                type="button"
+                onClick={handleSearch}
                 disabled={!searchQuery.trim()}
                 className={`text-sm font-bold px-3 py-1 rounded-full transition-all
-                  ${isScrolled
-                    ? "bg-gradient-to-r from-red-500 to-green-500 text-white hover:shadow-md"
-                    : "bg-white/30 text-white hover:bg-white/40"
+                  ${
+                    isScrolled
+                      ? "bg-gradient-to-r from-red-500 to-green-500 text-white hover:shadow-md"
+                      : "bg-white/30 text-white hover:bg-white/40"
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 🎄
               </button>
             </div>
-            {/* Glow effect on hover */}
-            <div className={`absolute inset-0 rounded-full blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 -z-10
-              ${isScrolled ? "bg-red-400" : "bg-white"}`}></div>
-          </form>
+            <div
+              className={`absolute inset-0 rounded-full blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 -z-10
+              ${isScrolled ? "bg-red-400" : "bg-white"}`}
+            ></div>
+          </div>
 
           {/* Hotel Button */}
           {user && (
             <button
               className={`px-5 py-2 text-sm font-bold rounded-full tracking-wide transition-all backdrop-blur-md shadow-lg relative overflow-hidden group
-              ${isScrolled
+              ${
+                isScrolled
                   ? "text-red-700 bg-gradient-to-r from-yellow-300 to-yellow-400 border-2 border-yellow-500 hover:from-yellow-400 hover:to-yellow-500"
                   : "text-white bg-gradient-to-r from-red-500/80 to-green-500/80 border-2 border-white/70 hover:from-red-600/90 hover:to-green-600/90"
-                }`}
+              }`}
               onClick={() =>
                 isOwner ? navigate("/owner") : setShowHotelReg(true)
               }
@@ -296,7 +297,7 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Right Section */}
+        {/* Right Section - Desktop */}
         <div className="hidden md:flex items-center gap-3 relative z-10">
           {user ? (
             <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent">
@@ -315,122 +316,117 @@ const Navbar = () => {
 
         {/* Mobile Menu Button */}
         <div className="flex items-center gap-3 md:hidden relative z-10">
-          <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2">
-            <UserButton />
-          </div>
+          {user && (
+            <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2">
+              <UserButton />
+            </div>
+          )}
           <img
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             src={assets.menuIcon}
             alt="menu"
-            className={`${isScrolled ? "invert-0" : "invert"
-              } h-5 cursor-pointer hover:scale-110 transition-transform`}
+            className={`${
+              isScrolled ? "invert-0" : "invert"
+            } h-5 cursor-pointer hover:scale-110 transition-transform`}
           />
         </div>
+      </nav>
 
-        {/* Mobile Menu */}
-        <div
-          className={`fixed top-0 left-0 w-full h-screen bg-gradient-to-br from-red-600/95 via-green-600/95 to-red-600/95 backdrop-blur-xl text-base flex flex-col md:hidden items-center justify-center gap-6 font-bold text-white transition-all duration-500 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
-            onClick={() =>
-              isAdmin
-                ? navigate("/admin")
-                : isOwner
-                ? navigate("/owner")
-                : setShowHotelReg(true)
+      {/* Mobile Menu Overlay */}
+      <div
+        className={`fixed top-0 left-0 z-50 w-full h-screen bg-gradient-to-br from-red-600/95 via-green-600/95 to-red-600/95 backdrop-blur-xl flex flex-col items-center justify-center gap-6 font-bold text-white transition-all duration-500 md:hidden ${
+          isMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Close Button */}
+        <button
+          className="absolute top-4 right-4 hover:scale-110 transition-transform"
+          onClick={() => setIsMenuOpen(false)}
+        >
+          <img src={assets.closeMenu} alt="close-menu" className="h-7 invert" />
+        </button>
+
+        {/* Mobile Search Bar */}
+        <div className="relative group w-4/5 max-w-md">
+          <div className="flex items-center gap-2 px-4 py-3 rounded-full border-2 border-white/50 bg-white/20 backdrop-blur-md shadow-lg">
+            <span className="text-xl">🔍</span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
+              placeholder="Search hotels..."
+              className="flex-1 bg-transparent outline-none text-white placeholder-white/70 font-medium"
+            />
+            <button
+              type="button"
+              onClick={handleSearch}
+              disabled={!searchQuery.trim()}
+              className="text-lg font-bold px-3 py-1 rounded-full bg-white/30 hover:bg-white/40 transition-all disabled:opacity-50"
+            >
+              🎄
+            </button>
+          </div>
+          <div className="absolute inset-0 rounded-full blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 -z-10 bg-white"></div>
+        </div>
+
+        {/* Navigation Links */}
+        {navLinks.map((navLink) => (
+          <NavLink
+            key={navLink.name}
+            to={navLink.path}
+            onClick={() => {
+              setIsMenuOpen(false);
+              scrollTo(0, 0);
+            }}
+            className={({ isActive }) =>
+              `text-2xl hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] ${
+                isActive ? "text-yellow-300" : "text-white"
+              }`
             }
           >
-            {isAdmin
-              ? "Admin Panel"
-              : isOwner
-              ? "Dashboard"
-              : "List Your Hotel"}
-          </button>
-        )}
-      </div>
+            {navLink.name} ⭐
+          </NavLink>
+        ))}
 
-      {/* Right Section */}
-      <div className="hidden md:flex items-center gap-4">
-        <img
-          src={assets.searchIcon}
-          alt="search"
-          className={`${
-            isScrolled ? "invert-0" : "invert"
-          } h-7 transition-all duration-500 drop-shadow-[0_0_4px_white]`}
-        />
-        {user ? (
-          <UserButton />
-        ) : (
-          <button
-            className="absolute top-4 right-4 hover:scale-110 transition-transform"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            <img src={assets.closeMenu} alt="close-menu" className="h-7 invert" />
-          </button>
-
-          {/* Mobile Search Bar */}
-          <form onSubmit={handleSearch} className="relative group w-4/5 max-w-md">
-            <div className="flex items-center gap-2 px-4 py-3 rounded-full border-2 border-white/50 bg-white/20 backdrop-blur-md shadow-lg">
-              <span className="text-xl">🔍</span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search hotels..."
-                className="flex-1 bg-transparent outline-none text-white placeholder-white/70 font-medium"
-              />
-              <button
-                type="submit"
-                disabled={!searchQuery.trim()}
-                className="text-lg font-bold px-3 py-1 rounded-full bg-white/30 hover:bg-white/40 transition-all disabled:opacity-50"
-              >
-                🎄
-              </button>
-            </div>
-            <div className="absolute inset-0 rounded-full blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 -z-10 bg-white"></div>
-          </form>
-
-          {navLinks.map((navLink) => (
+        {/* User Actions - Logged In */}
+        {user && (
+          <>
             <NavLink
-              key={navLink.name}
-              to={navLink.path}
+              to="/my-bookings"
               onClick={() => setIsMenuOpen(false)}
               className="text-2xl hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]"
             >
-              {navLink.name} ⭐
+              My Bookings 🎁
             </NavLink>
-          ))}
 
-          {user && (
-            <>
-              <NavLink
-                to="/my-bookings"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-2xl hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]"
-              >
-                My Bookings 🎁
-              </NavLink>
-              <button
-                className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 px-6 py-2 text-lg font-bold rounded-full shadow-lg hover:scale-105 transition-all"
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  isOwner ? navigate("/owner") : setShowHotelReg(true);
-                }}
-              >
-                {isOwner ? "🎄 Dashboard" : "🎁 List Your Hotel"}
-              </button>
-            </>
-          )}
-
-          {!user && (
             <button
-              onClick={openSignIn}
-              className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 px-8 py-3 rounded-full shadow-lg font-bold text-xl hover:scale-105 transition-all"
+              className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 px-6 py-2 text-lg font-bold rounded-full shadow-lg hover:scale-105 transition-all mt-4"
+              onClick={() => {
+                setIsMenuOpen(false);
+                if (isAdmin) navigate("/admin");
+                else if (isOwner) navigate("/owner");
+                else setShowHotelReg(true);
+              }}
             >
-              🎅 Login
+              {isAdmin ? "👑 Admin Panel" : isOwner ? "🎄 Dashboard" : "🎁 List Your Hotel"}
             </button>
-          )}
-        </div>
-      </nav>
+          </>
+        )}
+
+        {/* Guest Actions - Not Logged In */}
+        {!user && (
+          <button
+            onClick={() => {
+              setIsMenuOpen(false);
+              openSignIn();
+            }}
+            className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 px-8 py-3 rounded-full shadow-lg font-bold text-xl hover:scale-105 transition-all mt-4"
+          >
+            🎅 Login
+          </button>
+        )}
+      </div>
     </>
   );
 };
