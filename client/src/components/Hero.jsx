@@ -31,7 +31,7 @@ const Hero = () => {
             <div className="relative z-10 w-full max-w-6xl">
                 {/* Christmas Badge */}
                 <span className="inline-block mb-6 px-5 py-2 rounded-full bg-red-600/80 backdrop-blur text-white text-sm font-semibold shadow-lg border-2 border-white/30">
-                    🎄 Christmas Travel Special 2024
+                    🎄 Christmas Travel Special 2025
                 </span>
 
                 {/* Heading */}
@@ -53,7 +53,7 @@ const Hero = () => {
                         {/* Destination */}
                         <div className="md:col-span-4 group">
                             <label className="text-sm font-semibold text-gray-700 group-focus-within:text-red-600 transition-colors">
-                                📍 Destination
+                                Destination
                             </label>
                             <input
                                 list="destinations"
@@ -73,7 +73,7 @@ const Hero = () => {
                         {/* Check in */}
                         <div className="md:col-span-2 group">
                             <label className="text-sm font-semibold text-gray-700 group-focus-within:text-green-600 transition-colors">
-                                📅 Check in
+                                Check in
                             </label>
                             <input
                                 type="date"
@@ -84,7 +84,7 @@ const Hero = () => {
                         {/* Check out */}
                         <div className="md:col-span-2 group">
                             <label className="text-sm font-semibold text-gray-700 group-focus-within:text-green-600 transition-colors">
-                                🎄 Check out
+                                Check out
                             </label>
                             <input
                                 type="date"
@@ -95,7 +95,7 @@ const Hero = () => {
                         {/* Guests */}
                         <div className="md:col-span-2 group">
                             <label className="text-sm font-semibold text-gray-700 group-focus-within:text-red-600 transition-colors">
-                                👨‍👩‍👧 Guests
+                                Guests
                             </label>
                             <input
                                 type="number"
@@ -109,7 +109,7 @@ const Hero = () => {
                         {/* Search Button */}
                         <div className="md:col-span-2 flex items-end">
                             <button className="w-full h-[56px] rounded-xl bg-gradient-to-r from-red-600 to-green-600 text-white text-base font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
-                                🎅 Search
+                                Search
                             </button>
                         </div>
                     </div>
