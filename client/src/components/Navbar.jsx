@@ -70,6 +70,8 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const location = useLocation();
 
+  const isHomePage = location.pathname === "/";
+
   const { openSignIn } = useClerk();
   const { user, setShowHotelReg, isOwner, isAdmin, navigate } = useAppContext();
 
@@ -83,14 +85,15 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    if (location.pathname !== "/") {
-      setIsScrolled(true);
-      return;
-    }
-
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
+
+    // Reset về đầu trang khi chuyển route
+    window.scrollTo(0, 0);
+    // Kiểm tra ngay lập tức
+    handleScroll();
+
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [location.pathname]);
@@ -150,11 +153,13 @@ const Navbar = () => {
         ${
           isScrolled
             ? "bg-gradient-to-r from-red-700 via-green-700 to-red-700 shadow-2xl backdrop-blur-lg py-3 md:py-4 border-b-2 border-yellow-400"
-            : "py-4 md:py-6 bg-gradient-to-b from-red-600/80 via-green-600/60 to-transparent"
+            : isHomePage
+            ? "py-4 md:py-6 bg-gradient-to-b from-red-600/80 via-green-600/60 to-transparent"
+            : "bg-gradient-to-r from-red-700 via-green-700 to-red-700 py-3 md:py-4"
         }`}
       >
         {/* Christmas Lights Decoration */}
-        {!isScrolled && <ChristmasLights />}
+        {isHomePage && !isScrolled && <ChristmasLights />}
 
         {/* Falling Snowflakes */}
         {[...Array(8)].map((_, i) => (
@@ -173,7 +178,10 @@ const Navbar = () => {
         ))}
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 animate-float relative z-10">
+        <Link
+          to="/"
+          className="flex items-center gap-2 animate-float relative z-10"
+        >
           <img
             src={assets.logo}
             alt="logo"
@@ -212,7 +220,11 @@ const Navbar = () => {
               </span>
               <div
                 className={`h-1 w-0 group-hover:w-full transition-all duration-300 rounded-full
-                ${isScrolled ? "bg-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.8)]" : "bg-white shadow-[0_0_8px_white]"}
+                ${
+                  isScrolled
+                    ? "bg-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.8)]"
+                    : "bg-white shadow-[0_0_8px_white]"
+                }
               `}
               ></div>
             </NavLink>
@@ -247,7 +259,7 @@ const Navbar = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
                 placeholder="Search hotels..."
                 className={`w-40 lg:w-48 bg-transparent outline-none font-medium transition-all
                   ${
@@ -300,8 +312,18 @@ const Navbar = () => {
         {/* Right Section - Desktop */}
         <div className="hidden md:flex items-center gap-3 relative z-10">
           {user ? (
-            <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent">
-              <UserButton />
+            // Đã đổi w-10 h-10 -> w-14 h-14
+            <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent p-0.5 w-10 h-10 flex items-center justify-center overflow-hidden">
+              <UserButton
+                // Thêm dòng này để ảnh bên trong to full khung
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "!w-12 !h-12", 
+                    userButtonImage: "!w-full !h-full",
+                    userButtonTrigger: "!p-0 !border-none !shadow-none focus:!shadow-none",
+                  }
+                }}
+              />
             </div>
           ) : (
             <button
@@ -317,8 +339,18 @@ const Navbar = () => {
         {/* Mobile Menu Button */}
         <div className="flex items-center gap-3 md:hidden relative z-10">
           {user && (
-            <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2">
-              <UserButton />
+            // Đã đổi w-10 h-10 -> w-14 h-14
+            <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent p-0.5 w-10 h-10 flex items-center justify-center overflow-hidden">
+              <UserButton
+                // Thêm dòng này để ảnh bên trong to full khung
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "!w-12 !h-12", 
+                    userButtonImage: "!w-full !h-full",
+                    userButtonTrigger: "!p-0 !border-none !shadow-none focus:!shadow-none",
+                  }
+                }}
+              />
             </div>
           )}
           <img
@@ -327,7 +359,7 @@ const Navbar = () => {
             alt="menu"
             className={`${
               isScrolled ? "invert-0" : "invert"
-            } h-5 cursor-pointer hover:scale-110 transition-transform`}
+            } h-14 w-14 cursor-pointer hover:scale-110 transition-transform`}
           />
         </div>
       </nav>
@@ -354,7 +386,7 @@ const Navbar = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
               placeholder="Search hotels..."
               className="flex-1 bg-transparent outline-none text-white placeholder-white/70 font-medium"
             />
@@ -401,7 +433,7 @@ const Navbar = () => {
             </NavLink>
 
             <button
-              className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 px-6 py-2 text-lg font-bold rounded-full shadow-lg hover:scale-105 transition-all mt-4"
+              className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 px-6 py-2 text-lg font-bold rounded shadow-lg hover:scale-105 transition-all mt-4"
               onClick={() => {
                 setIsMenuOpen(false);
                 if (isAdmin) navigate("/admin");
@@ -409,7 +441,11 @@ const Navbar = () => {
                 else setShowHotelReg(true);
               }}
             >
-              {isAdmin ? "👑 Admin Panel" : isOwner ? "🎄 Dashboard" : "🎁 List Your Hotel"}
+              {isAdmin
+                ? "👑 Admin Panel"
+                : isOwner
+                ? "🎄 Dashboard"
+                : "🎁 List Your Hotel"}
             </button>
           </>
         )}
