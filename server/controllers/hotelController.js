@@ -5,10 +5,23 @@ import User from "../models/User.js";
 // POST /api/hotels
 export const registerHotel = async (req, res) => {
   try {
-    const { name, address, contact, city } = req.body;
+    const { name, address, contact, city, latitude, longitude } = req.body;
     const owner = req.user._id;
 
-    await Hotel.create({ name, address, contact, city, owner });
+    const lat =
+      latitude === null || latitude === undefined ? null : Number(latitude);
+    const lng =
+      longitude === null || longitude === undefined ? null : Number(longitude);
+
+    await Hotel.create({
+      name,
+      address,
+      contact,
+      city,
+      owner,
+      latitude: Number.isFinite(lat) ? lat : null,
+      longitude: Number.isFinite(lng) ? lng : null,
+    });
 
     // Update User Role if needed
     if (req.user.role !== "hotelOwner") {
@@ -54,7 +67,7 @@ export const getOwnerHotels = async (req, res) => {
 export const updateHotel = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, address, contact, city } = req.body;
+    const { name, address, contact, city, latitude, longitude } = req.body;
     const owner = req.auth.userId;
 
     // Check if hotel exists and belongs to the owner
@@ -70,10 +83,22 @@ export const updateHotel = async (req, res) => {
       });
     }
 
+    const lat =
+      latitude === null || latitude === undefined ? null : Number(latitude);
+    const lng =
+      longitude === null || longitude === undefined ? null : Number(longitude);
+
     // Update hotel
     const updatedHotel = await Hotel.findByIdAndUpdate(
       id,
-      { name, address, contact, city },
+      {
+        name,
+        address,
+        contact,
+        city,
+        latitude: Number.isFinite(lat) ? lat : null,
+        longitude: Number.isFinite(lng) ? lng : null,
+      },
       { new: true }
     );
 

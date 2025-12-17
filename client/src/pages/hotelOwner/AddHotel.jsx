@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Title from '../../components/Title'
 import toast from 'react-hot-toast'
 import { useAppContext } from '../../context/AppContext'
+import OSMAddressAutocomplete from '../../components/hotelOwner/OSMAddressAutocomplete'
 
 const AddHotel = () => {
 
@@ -12,19 +13,27 @@ const AddHotel = () => {
         name: '',
         address: '',
         contact: '',
-        city: ''
+        city: '',
+        latitude: null,
+        longitude: null,
     })
 
     const onSubmitHandler = async (e) => {
         e.preventDefault()
         // Check if all inputs are filled
-        if (!inputs.name || !inputs.address || !inputs.contact || !inputs.city) {
+        const hasCoords = Number.isFinite(inputs.latitude) && Number.isFinite(inputs.longitude)
+        if (!inputs.name || !inputs.address || !inputs.contact || !inputs.city || !hasCoords) {
             toast.error("Please fill in all the details")
             return;
         }
         setLoading(true);
         try {
-            const { data } = await axios.post('/api/hotels', inputs, { headers: { Authorization: `Bearer ${await getToken()}` } })
+            const payload = {
+                ...inputs,
+                latitude: inputs.latitude,
+                longitude: inputs.longitude,
+            }
+            const { data } = await axios.post('/api/hotels', payload, { headers: { Authorization: `Bearer ${await getToken()}` } })
 
             if (data.success) {
                 toast.success(data.message)
@@ -32,7 +41,9 @@ const AddHotel = () => {
                     name: '',
                     address: '',
                     contact: '',
-                    city: ''
+                    city: '',
+                    latitude: null,
+                    longitude: null,
                 })
                 // Refresh the owner hotels list
                 fetchOwnerHotels();
@@ -70,15 +81,25 @@ const AddHotel = () => {
                 </div>
 
                 <div className='mt-4'>
-                    <p className='text-emerald-800 font-medium'>Address</p>
-                    <input
-                        type="text"
-                        name='address'
-                        placeholder='Enter hotel address'
-                        className='border border-gray-300 mt-2 rounded p-3 w-full'
+                    <p className='text-gray-800 font-medium'>Address</p>
+                    <OSMAddressAutocomplete
                         value={inputs.address}
-                        onChange={handleChange}
+                        onChange={(next) => setInputs(prev => ({ ...prev, address: next, latitude: null, longitude: null }))}
+                        onSelect={(picked) => setInputs(prev => ({
+                            ...prev,
+                            address: picked.displayName,
+                            city: prev.city || picked.city,
+                            latitude: picked.latitude,
+                            longitude: picked.longitude,
+                        }))}
+                        placeholder='Search hotel address (OpenStreetMap)'
+                        disabled={loading}
                     />
+                    <p className='text-xs text-gray-500 mt-2'>
+                        {Number.isFinite(inputs.latitude) && Number.isFinite(inputs.longitude)
+                            ? `Selected coordinates: ${inputs.latitude}, ${inputs.longitude}`
+                            : 'Pick an address from suggestions to save coordinates.'}
+                    </p>
                 </div>
 
                 <div className='mt-4'>
