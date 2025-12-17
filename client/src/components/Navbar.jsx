@@ -173,7 +173,10 @@ const Navbar = () => {
         ))}
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 animate-float relative z-10">
+        <Link
+          to="/"
+          className="flex items-center gap-2 animate-float relative z-10"
+        >
           <img
             src={assets.logo}
             alt="logo"
@@ -212,7 +215,11 @@ const Navbar = () => {
               </span>
               <div
                 className={`h-1 w-0 group-hover:w-full transition-all duration-300 rounded-full
-                ${isScrolled ? "bg-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.8)]" : "bg-white shadow-[0_0_8px_white]"}
+                ${
+                  isScrolled
+                    ? "bg-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.8)]"
+                    : "bg-white shadow-[0_0_8px_white]"
+                }
               `}
               ></div>
             </NavLink>
@@ -247,7 +254,7 @@ const Navbar = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
                 placeholder="Search hotels..."
                 className={`w-40 lg:w-48 bg-transparent outline-none font-medium transition-all
                   ${
@@ -286,11 +293,19 @@ const Navbar = () => {
                   : "text-white bg-gradient-to-r from-red-500/80 to-green-500/80 border-2 border-white/70 hover:from-red-600/90 hover:to-green-600/90"
               }`}
               onClick={() =>
-                isOwner ? navigate("/owner") : setShowHotelReg(true)
+                isAdmin
+                  ? navigate("/admin")
+                  : isOwner
+                  ? navigate("/owner")
+                  : setShowHotelReg(true)
               }
             >
               <span className="relative z-10">
-                {isOwner ? "🎄 Dashboard" : "🎁 List Your Hotel"}
+                {isAdmin
+                  ? "👑 Admin Panel"
+                  : isOwner
+                  ? "🎄 Dashboard"
+                  : "🎁 List Your Hotel"}
               </span>
               <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
             </button>
@@ -354,7 +369,7 @@ const Navbar = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
               placeholder="Search hotels..."
               className="flex-1 bg-transparent outline-none text-white placeholder-white/70 font-medium"
             />
@@ -409,7 +424,11 @@ const Navbar = () => {
                 else setShowHotelReg(true);
               }}
             >
-              {isAdmin ? "👑 Admin Panel" : isOwner ? "🎄 Dashboard" : "🎁 List Your Hotel"}
+              {isAdmin
+                ? "👑 Admin Panel"
+                : isOwner
+                ? "🎄 Dashboard"
+                : "🎁 List Your Hotel"}
             </button>
           </>
         )}
