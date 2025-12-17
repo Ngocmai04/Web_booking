@@ -20,10 +20,19 @@ import Loader from './components/Loader'
 import SnowFalling from './components/SnowFalling'
 import ReindeerCursor from './components/ReindeerCursor'
 
-const App = () => {
+// Admin imports
+import AdminLayout from "./pages/admin/Layout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import ManageUsers from "./pages/admin/ManageUsers";
+import ManageHotels from "./pages/admin/ManageHotels";
+import PendingHotels from "./pages/admin/PendingHotels";
+import ManageRooms from "./pages/admin/ManageRooms";
+import ManageBookings from "./pages/admin/ManageBookings";
 
-  // Check Is Route Starts With Owner
+const App = () => {
+  // Check Is Route Starts With Owner or Admin
   const isOwnerPath = useLocation().pathname.includes("owner");
+  const isAdminPath = useLocation().pathname.includes("admin");
   const { showHotelReg } = useAppContext();
 
   // Prevent horizontal scroll
@@ -129,16 +138,16 @@ const App = () => {
         </>
       )}
 
-      {!isOwnerPath && <Navbar />}
+      {!isOwnerPath && !isAdminPath && <Navbar />}
       {showHotelReg && <HotelReg />}
 
       {/* Main Content */}
       <div className='min-h-[70vh] relative z-[10]'>
         <Routes>
-          <Route path='/' element={<Home />} />
-          <Route path='/rooms' element={<AllRooms />} />
-          <Route path='/rooms/:id' element={<RoomDetails />} />
-          <Route path='my-bookings' element={<MyBookings />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/rooms" element={<AllRooms />} />
+          <Route path="/rooms/:id" element={<RoomDetails />} />
+          <Route path="my-bookings" element={<MyBookings />} />
           <Route path="/loader/:nextUrl" element={<Loader />} />
 
           {/* Owner routes */}
@@ -149,6 +158,16 @@ const App = () => {
             <Route path="edit-hotel/:id" element={<EditHotel />} />
             <Route path="add-room" element={<AddRoom />} />
             <Route path="list-room" element={<ListRoom />} />
+          </Route>
+
+          {/* Admin routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<ManageUsers />} />
+            <Route path="hotels" element={<ManageHotels />} />
+            <Route path="pending-hotels" element={<PendingHotels />} />
+            <Route path="rooms" element={<ManageRooms />} />
+            <Route path="bookings" element={<ManageBookings />} />
           </Route>
         </Routes>
       </div>
@@ -179,7 +198,7 @@ const App = () => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;

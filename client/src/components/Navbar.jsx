@@ -70,7 +70,7 @@ const Navbar = () => {
   const location = useLocation();
 
   const { openSignIn } = useClerk();
-  const { user, setShowHotelReg, isOwner, navigate } = useAppContext();
+  const { user, setShowHotelReg, isOwner, isAdmin, navigate } = useAppContext();
 
   // Handle search
   const handleSearch = (e) => {
@@ -331,7 +331,35 @@ const Navbar = () => {
         <div
           className={`fixed top-0 left-0 w-full h-screen bg-gradient-to-br from-red-600/95 via-green-600/95 to-red-600/95 backdrop-blur-xl text-base flex flex-col md:hidden items-center justify-center gap-6 font-bold text-white transition-all duration-500 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
             }`}
-        >
+            onClick={() =>
+              isAdmin
+                ? navigate("/admin")
+                : isOwner
+                ? navigate("/owner")
+                : setShowHotelReg(true)
+            }
+          >
+            {isAdmin
+              ? "Admin Panel"
+              : isOwner
+              ? "Dashboard"
+              : "List Your Hotel"}
+          </button>
+        )}
+      </div>
+
+      {/* Right Section */}
+      <div className="hidden md:flex items-center gap-4">
+        <img
+          src={assets.searchIcon}
+          alt="search"
+          className={`${
+            isScrolled ? "invert-0" : "invert"
+          } h-7 transition-all duration-500 drop-shadow-[0_0_4px_white]`}
+        />
+        {user ? (
+          <UserButton />
+        ) : (
           <button
             className="absolute top-4 right-4 hover:scale-110 transition-transform"
             onClick={() => setIsMenuOpen(false)}
