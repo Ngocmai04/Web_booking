@@ -35,8 +35,8 @@ const ChristmasBell = () => (
 // Christmas Lights Background
 const ChristmasLights = () => (
   <div className="absolute top-0 left-0 w-full h-1 overflow-hidden">
-    <div className="flex animate-lights">
-      {[...Array(20)].map((_, i) => (
+    <div className="flex animate-lights w-full justify-between">
+      {[...Array(42)].map((_, i) => (
         <div
           key={i}
           className={`w-2 h-2 rounded-full mx-4 ${i % 4 === 0
