@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { roomCommonData } from '../assets/assets'
 import { useAppContext } from '../context/AppContext';
 import { useParams } from 'react-router-dom';
@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 const RoomDetails = () => {
     const { id } = useParams();
-    const { facilityIcons, rooms, getToken, axios, navigate } = useAppContext();
+    const { facilityIcons, rooms, getToken, axios, navigate, user } = useAppContext(); // ✅ Thêm user từ context
 
     const [room, setRoom] = useState(null);
     const [mainImage, setMainImage] = useState(null);
@@ -28,21 +28,50 @@ const RoomDetails = () => {
         comment: ''
     });
 
-    // Mock reviews data
-    const [reviews, setReviews] = useState([
-        { id: 1, name: "Sarah Johnson", avatar: "https://i.pravatar.cc/150?img=1", rating: 5, date: "Dec 10, 2024", comment: "Amazing Christmas experience! The decorations were stunning and the service was exceptional. Highly recommend!", staff: 5, service: 5, cleanliness: 5 },
-        { id: 2, name: "Michael Chen", avatar: "https://i.pravatar.cc/150?img=2", rating: 4, date: "Dec 8, 2024", comment: "Great location and beautiful Christmas ambiance. Room was cozy and comfortable.", staff: 4, service: 5, cleanliness: 4 },
-        { id: 3, name: "Emma Williams", avatar: "https://i.pravatar.cc/150?img=3", rating: 5, date: "Dec 5, 2024", comment: "Perfect holiday getaway! The festive atmosphere made our stay magical.", staff: 5, service: 4, cleanliness: 5 },
-        { id: 4, name: "David Brown", avatar: "https://i.pravatar.cc/150?img=4", rating: 4, date: "Dec 3, 2024", comment: "Lovely property with excellent Christmas decorations. Staff was very friendly.", staff: 5, service: 4, cleanliness: 4 },
-        { id: 5, name: "Lisa Anderson", avatar: "https://i.pravatar.cc/150?img=5", rating: 5, date: "Nov 30, 2024", comment: "Absolutely wonderful! The best Christmas stay we've ever had.", staff: 5, service: 5, cleanliness: 5 },
-    ]);
+    // Reviews from database
+    const [reviews, setReviews] = useState([]);
+    const [avgRatings, setAvgRatings] = useState({
+        overall: 0,
+        staff: 0,
+        service: 0,
+        cleanliness: 0
+    });
+    const [loading, setLoading] = useState(false);
 
-    const avgRatings = {
-        overall: 4.6,
-        staff: 4.8,
-        service: 4.6,
-        cleanliness: 4.6
-    };
+    // Fetch reviews from database
+    const fetchReviews = useCallback(async () => {
+        try {
+            if (!room?.hotel?._id) return;
+            
+            setLoading(true);
+            const { data } = await axios.get(`/api/ratings?hotel=${room.hotel._id}`);
+            
+            if (data.success) {
+                setReviews(data.ratings);
+                
+                // Calculate average ratings
+                if (data.ratings.length > 0) {
+                    const totals = data.ratings.reduce((acc, review) => ({
+                        overall: acc.overall + review.ratings.overall,
+                        staff: acc.staff + (review.ratings.staff || 0),
+                        service: acc.service + (review.ratings.service || 0),
+                        cleanliness: acc.cleanliness + (review.ratings.cleanliness || 0)
+                    }), { overall: 0, staff: 0, service: 0, cleanliness: 0 });
+
+                    setAvgRatings({
+                        overall: (totals.overall / data.ratings.length).toFixed(1),
+                        staff: (totals.staff / data.ratings.length).toFixed(1),
+                        service: (totals.service / data.ratings.length).toFixed(1),
+                        cleanliness: (totals.cleanliness / data.ratings.length).toFixed(1)
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [room?.hotel?._id, axios]);
 
     const checkAvailability = async () => {
         try {
@@ -88,30 +117,108 @@ const RoomDetails = () => {
         }
     }
 
-    const handleSubmitReview = (e) => {
+    const handleSubmitReview = async (e) => {
         e.preventDefault();
-        const newReview = {
-            id: reviews.length + 1,
-            name: "You",
-            avatar: "https://i.pravatar.cc/150?img=10",
-            rating: reviewData.rating,
-            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            comment: reviewData.comment,
-            staff: reviewData.staffRating,
-            service: reviewData.serviceRating,
-            cleanliness: reviewData.cleanlinessRating
-        };
         
-        setReviews([newReview, ...reviews]);
-        toast.success('🎄 Review submitted successfully!');
-        setShowReviewForm(false);
+        try {
+            const token = await getToken();
+            if (!token) {
+                toast.error('Please login to submit a review');
+                return;
+            }
+
+            const payload = {
+                hotel: room.hotel._id,
+                ratings: {
+                    overall: reviewData.rating,
+                    staff: reviewData.staffRating,
+                    service: reviewData.serviceRating,
+                    cleanliness: reviewData.cleanlinessRating
+                },
+                comment: reviewData.comment
+            };
+
+            // Check if user already has a review
+            const existingReview = reviews.find(r => r.user?._id === user?.id);
+            
+            if (existingReview) {
+                // Update existing review
+                const { data } = await axios.put(`/api/ratings/${existingReview._id}`, payload, { 
+                    headers: { Authorization: `Bearer ${token}` } 
+                });
+
+                if (data.success) {
+                    toast.success('🎄 Review updated successfully!');
+                    setShowReviewForm(false);
+                    setReviewData({
+                        rating: 5,
+                        staffRating: 5,
+                        serviceRating: 5,
+                        cleanlinessRating: 5,
+                        comment: ''
+                    });
+                    fetchReviews();
+                } else {
+                    toast.error(data.message);
+                }
+            } else {
+                // Create new review
+                const { data } = await axios.post('/api/ratings', payload, { 
+                    headers: { Authorization: `Bearer ${token}` } 
+                });
+
+                if (data.success) {
+                    toast.success('🎄 Review submitted successfully!');
+                    setShowReviewForm(false);
+                    setReviewData({
+                        rating: 5,
+                        staffRating: 5,
+                        serviceRating: 5,
+                        cleanlinessRating: 5,
+                        comment: ''
+                    });
+                    fetchReviews();
+                } else {
+                    toast.error(data.message);
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error.response?.data);
+            toast.error(error.response?.data?.message || 'Failed to submit review');
+        }
+    };
+
+    // Handle delete review
+    const handleDeleteReview = async (reviewId) => {
+        if (!window.confirm('Are you sure you want to delete this review?')) return;
+        
+        try {
+            const token = await getToken();
+            const { data } = await axios.delete(`/api/ratings/${reviewId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (data.success) {
+                toast.success('Review deleted successfully!');
+                fetchReviews();
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to delete review');
+        }
+    };
+
+    // Handle edit review
+    const handleEditReview = (review) => {
         setReviewData({
-            rating: 5,
-            staffRating: 5,
-            serviceRating: 5,
-            cleanlinessRating: 5,
-            comment: ''
+            rating: review.ratings.overall,
+            staffRating: review.ratings.staff || review.ratings.overall,
+            serviceRating: review.ratings.service || review.ratings.overall,
+            cleanlinessRating: review.ratings.cleanliness || review.ratings.overall,
+            comment: review.comment
         });
+        setShowReviewForm(true);
     };
 
     useEffect(() => {
@@ -119,6 +226,12 @@ const RoomDetails = () => {
         room && setRoom(room);
         room && setMainImage(room.images[0]);
     }, [rooms, id]);
+
+    useEffect(() => {
+        if (room?.hotel?._id) {
+            fetchReviews();
+        }
+    }, [room?.hotel?._id, fetchReviews]);
 
     const displayedReviews = reviews.slice(0, 3);
     const remainingImages = room?.images.length > 5 ? room.images.length - 5 : 0;
@@ -170,40 +283,86 @@ const RoomDetails = () => {
 
                         {/* Reviews List */}
                         <div className="p-6 space-y-4">
-                            {reviews.map((review) => (
-                                <div key={review.id} className='bg-white p-6 rounded-2xl border-3 border-red-200 shadow-lg hover:shadow-2xl transition-all'>
-                                    <div className='flex items-center gap-3 mb-4'>
-                                        <img src={review.avatar} alt={review.name} className='w-14 h-14 rounded-full border-3 border-green-400 shadow-md' />
-                                        <div className='flex-1'>
-                                            <p className='font-bold text-gray-800 text-lg'>{review.name}</p>
-                                            <p className='text-sm text-gray-500'>{review.date}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className='flex items-center gap-1 mb-4'>
-                                        {[...Array(5)].map((_, i) => (
-                                            <span key={i} className={`text-2xl ${i < review.rating ? 'text-yellow-500' : 'text-gray-300'}`}>★</span>
-                                        ))}
-                                    </div>
-
-                                    <p className='text-gray-700 leading-relaxed mb-4'>{review.comment}</p>
-
-                                    <div className='grid grid-cols-3 gap-2'>
-                                        <div className='px-3 py-2 bg-red-100 text-red-700 rounded-xl font-semibold text-center'>
-                                            <p className="text-xs">Staff</p>
-                                            <p className="text-lg">{review.staff} ⭐</p>
-                                        </div>
-                                        <div className='px-3 py-2 bg-green-100 text-green-700 rounded-xl font-semibold text-center'>
-                                            <p className="text-xs">Service</p>
-                                            <p className="text-lg">{review.service} ⭐</p>
-                                        </div>
-                                        <div className='px-3 py-2 bg-blue-100 text-blue-700 rounded-xl font-semibold text-center'>
-                                            <p className="text-xs">Clean</p>
-                                            <p className="text-lg">{review.cleanliness} ⭐</p>
-                                        </div>
-                                    </div>
+                            {loading ? (
+                                <div className="text-center py-8">
+                                    <p className="text-gray-500">Loading reviews...</p>
                                 </div>
-                            ))}
+                            ) : reviews.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+                                </div>
+                            ) : (
+                                reviews.map((review) => {
+                                    const isMyReview = review.user?._id === user?.id;
+                                    return (
+                                        <div key={review._id} className='bg-white p-6 rounded-2xl border-3 border-red-200 shadow-lg hover:shadow-2xl transition-all'>
+                                            <div className='flex items-center gap-3 mb-4'>
+                                                <img 
+                                                    src={review.user?.image || user?.imageUrl || "https://i.pravatar.cc/150?img=10"} 
+                                                    alt={review.user?.username || "User"} 
+                                                    className='w-14 h-14 rounded-full border-3 border-green-400 shadow-md' 
+                                                />
+                                                <div className='flex-1'>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className='font-bold text-gray-800 text-lg'>
+                                                            {isMyReview ? 'You' : (review.user?.username || "Anonymous")}
+                                                        </p>
+                                                        {isMyReview && (
+                                                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Your Review</span>
+                                                        )}
+                                                    </div>
+                                                    <p className='text-sm text-gray-500'>
+                                                        {new Date(review.createdAt).toLocaleDateString('en-US', { 
+                                                            month: 'short', 
+                                                            day: 'numeric', 
+                                                            year: 'numeric' 
+                                                        })}
+                                                    </p>
+                                                </div>
+                                                {isMyReview && (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleEditReview(review)}
+                                                            className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 transition-all"
+                                                        >
+                                                            ✏️ Edit
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteReview(review._id)}
+                                                            className="px-3 py-1 bg-red-500 text-white rounded-lg text-sm font-semibold hover:bg-red-600 transition-all"
+                                                        >
+                                                            🗑️ Delete
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className='flex items-center gap-1 mb-4'>
+                                                {[...Array(5)].map((_, i) => (
+                                                    <span key={i} className={`text-2xl ${i < review.ratings.overall ? 'text-yellow-500' : 'text-gray-300'}`}>★</span>
+                                                ))}
+                                            </div>
+
+                                            <p className='text-gray-700 leading-relaxed mb-4'>{review.comment}</p>
+
+                                            <div className='grid grid-cols-3 gap-2'>
+                                                <div className='px-3 py-2 bg-red-100 text-red-700 rounded-xl font-semibold text-center'>
+                                                    <p className="text-xs">Staff</p>
+                                                    <p className="text-lg">{review.ratings.staff || 0} ⭐</p>
+                                                </div>
+                                                <div className='px-3 py-2 bg-green-100 text-green-700 rounded-xl font-semibold text-center'>
+                                                    <p className="text-xs">Service</p>
+                                                    <p className="text-lg">{review.ratings.service || 0} ⭐</p>
+                                                </div>
+                                                <div className='px-3 py-2 bg-blue-100 text-blue-700 rounded-xl font-semibold text-center'>
+                                                    <p className="text-xs">Clean</p>
+                                                    <p className="text-lg">{review.ratings.cleanliness || 0} ⭐</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
                         </div>
 
                         {/* Write Review Section in Sidebar */}
@@ -241,7 +400,7 @@ const RoomDetails = () => {
                             </button>
                         </div>
 
-                        <div className="space-y-6">
+                        <form onSubmit={handleSubmitReview} className="space-y-6">
                             {/* Overall Rating */}
                             <div className="bg-gradient-to-r from-yellow-100 to-yellow-200 p-6 rounded-2xl border-3 border-yellow-400">
                                 <StarRatingInput 
@@ -297,13 +456,13 @@ const RoomDetails = () => {
 
                             {/* Submit Button */}
                             <button
-                                onClick={handleSubmitReview}
+                                type="submit"
                                 disabled={!reviewData.comment.trim()}
                                 className="w-full bg-gradient-to-r from-red-600 via-green-600 to-red-600 hover:from-red-700 hover:via-green-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black rounded-2xl px-8 py-4 text-xl shadow-2xl hover:shadow-red-500/50 border-4 border-yellow-400 transition-all hover:scale-105 active:scale-95"
                             >
                                 🎄 Submit Review
                             </button>
-                        </div>
+                        </form>
                     </div>
                 </div>
             )}
@@ -566,75 +725,129 @@ const RoomDetails = () => {
                         </div>
 
                         {/* Overall Ratings */}
-                        <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
-                            <div className='bg-gradient-to-br from-yellow-100 to-yellow-200 p-4 rounded-2xl border-3 border-yellow-400 shadow-lg text-center'>
-                                <p className='text-3xl font-black text-yellow-700'>{avgRatings.overall}</p>
-                                <p className='text-sm font-bold text-yellow-800 mt-1'>Overall</p>
-                                <div className='flex justify-center mt-2'>
-                                    {[...Array(5)].map((_, i) => (
-                                        <span key={i} className={`text-lg ${i < Math.round(avgRatings.overall) ? 'text-yellow-500' : 'text-gray-300'}`}>★</span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className='bg-gradient-to-br from-red-100 to-red-200 p-4 rounded-2xl border-3 border-red-400 shadow-lg text-center'>
-                                <p className='text-3xl font-black text-red-700'>{avgRatings.staff}</p>
-                                <p className='text-sm font-bold text-red-800 mt-1'>Staff</p>
-                                <div className='flex justify-center mt-2'>
-                                    {[...Array(5)].map((_, i) => (
-                                        <span key={i} className={`text-lg ${i < Math.round(avgRatings.staff) ? 'text-red-500' : 'text-gray-300'}`}>★</span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className='bg-gradient-to-br from-green-100 to-green-200 p-4 rounded-2xl border-3 border-green-400 shadow-lg text-center'>
-                                <p className='text-3xl font-black text-green-700'>{avgRatings.service}</p>
-                                <p className='text-sm font-bold text-green-800 mt-1'>Service</p>
-                                <div className='flex justify-center mt-2'>
-                                    {[...Array(5)].map((_, i) => (
-                                        <span key={i} className={`text-lg ${i < Math.round(avgRatings.service) ? 'text-green-500' : 'text-gray-300'}`}>★</span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className='bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-2xl border-3 border-blue-400 shadow-lg text-center'>
-                                <p className='text-3xl font-black text-blue-700'>{avgRatings.cleanliness}</p>
-                                <p className='text-sm font-bold text-blue-800 mt-1'>Cleanliness</p>
-                                <div className='flex justify-center mt-2'>
-                                    {[...Array(5)].map((_, i) => (
-                                        <span key={i} className={`text-lg ${i < Math.round(avgRatings.cleanliness) ? 'text-blue-500' : 'text-gray-300'}`}>★</span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Review Cards Preview */}
-                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                            {displayedReviews.map((review) => (
-                                <div key={review.id} className='bg-white p-5 rounded-2xl border-3 border-red-200 shadow-lg hover:shadow-2xl hover:scale-105 transition-all cursor-pointer'>
-                                    <div className='flex items-center gap-3 mb-3'>
-                                        <img src={review.avatar} alt={review.name} className='w-12 h-12 rounded-full border-3 border-green-400 shadow-md' />
-                                        <div className='flex-1'>
-                                            <p className='font-bold text-gray-800'>{review.name}</p>
-                                            <p className='text-xs text-gray-500'>{review.date}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className='flex items-center gap-1 mb-3'>
+                        {reviews.length > 0 && (
+                            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
+                                <div className='bg-gradient-to-br from-yellow-100 to-yellow-200 p-4 rounded-2xl border-3 border-yellow-400 shadow-lg text-center'>
+                                    <p className='text-3xl font-black text-yellow-700'>{avgRatings.overall}</p>
+                                    <p className='text-sm font-bold text-yellow-800 mt-1'>Overall</p>
+                                    <div className='flex justify-center mt-2'>
                                         {[...Array(5)].map((_, i) => (
-                                            <span key={i} className={`text-lg ${i < review.rating ? 'text-yellow-500' : 'text-gray-300'}`}>★</span>
+                                            <span key={i} className={`text-lg ${i < Math.round(avgRatings.overall) ? 'text-yellow-500' : 'text-gray-300'}`}>★</span>
                                         ))}
                                     </div>
+                                </div>
 
-                                    <p className='text-gray-700 text-sm leading-relaxed mb-3'>{review.comment}</p>
-
-                                    <div className='flex items-center gap-2 text-xs flex-wrap'>
-                                        <span className='px-2 py-1 bg-red-100 text-red-700 rounded-full font-semibold'>Staff: {review.staff}⭐</span>
-                                        <span className='px-2 py-1 bg-green-100 text-green-700 rounded-full font-semibold'>Service: {review.service}⭐</span>
+                                <div className='bg-gradient-to-br from-red-100 to-red-200 p-4 rounded-2xl border-3 border-red-400 shadow-lg text-center'>
+                                    <p className='text-3xl font-black text-red-700'>{avgRatings.staff}</p>
+                                    <p className='text-sm font-bold text-red-800 mt-1'>Staff</p>
+                                    <div className='flex justify-center mt-2'>
+                                        {[...Array(5)].map((_, i) => (
+                                            <span key={i} className={`text-lg ${i < Math.round(avgRatings.staff) ? 'text-red-500' : 'text-gray-300'}`}>★</span>
+                                        ))}
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+
+                                <div className='bg-gradient-to-br from-green-100 to-green-200 p-4 rounded-2xl border-3 border-green-400 shadow-lg text-center'>
+                                    <p className='text-3xl font-black text-green-700'>{avgRatings.service}</p>
+                                    <p className='text-sm font-bold text-green-800 mt-1'>Service</p>
+                                    <div className='flex justify-center mt-2'>
+                                        {[...Array(5)].map((_, i) => (
+                                            <span key={i} className={`text-lg ${i < Math.round(avgRatings.service) ? 'text-green-500' : 'text-gray-300'}`}>★</span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className='bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-2xl border-3 border-blue-400 shadow-lg text-center'>
+                                    <p className='text-3xl font-black text-blue-700'>{avgRatings.cleanliness}</p>
+                                    <p className='text-sm font-bold text-blue-800 mt-1'>Cleanliness</p>
+                                    <div className='flex justify-center mt-2'>
+                                        {[...Array(5)].map((_, i) => (
+                                            <span key={i} className={`text-lg ${i < Math.round(avgRatings.cleanliness) ? 'text-blue-500' : 'text-gray-300'}`}>★</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Review Cards Preview */}
+                        {loading ? (
+                            <div className="text-center py-8">
+                                <p className="text-gray-500">Loading reviews...</p>
+                            </div>
+                        ) : reviews.length === 0 ? (
+                            <div className="text-center py-8">
+                                <p className="text-gray-500 mb-4">No reviews yet. Be the first to review!</p>
+                                <button 
+                                    onClick={() => setShowReviewForm(true)}
+                                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-green-500 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
+                                >
+                                    ✍️ Write First Review
+                                </button>
+                            </div>
+                        ) : (
+                            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                                {displayedReviews.map((review) => {
+                                    const isMyReview = review.user?._id === user?.id;
+                                    return (
+                                        <div key={review._id} className='bg-white p-5 rounded-2xl border-3 border-red-200 shadow-lg hover:shadow-2xl hover:scale-105 transition-all cursor-pointer relative'>
+                                            {isMyReview && (
+                                                <div className="absolute top-2 right-2 flex gap-1">
+                                                    <button
+                                                        onClick={() => handleEditReview(review)}
+                                                        className="p-1 bg-blue-500 text-white rounded-lg text-xs hover:bg-blue-600"
+                                                        title="Edit"
+                                                    >
+                                                        ✏️
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteReview(review._id)}
+                                                        className="p-1 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600"
+                                                        title="Delete"
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                </div>
+                                            )}
+                                            <div className='flex items-center gap-3 mb-3'>
+                                                <img 
+                                                    src={review.user?.image || user?.imageUrl || "https://i.pravatar.cc/150?img=10"} 
+                                                    alt={review.user?.username || "User"} 
+                                                    className='w-12 h-12 rounded-full border-3 border-green-400 shadow-md' 
+                                                />
+                                                <div className='flex-1'>
+                                                    <div className="flex items-center gap-1">
+                                                        <p className='font-bold text-gray-800'>
+                                                            {isMyReview ? 'You' : (review.user?.username || "Anonymous")}
+                                                        </p>
+                                                        {isMyReview && <span className="text-xs text-green-600">✓</span>}
+                                                    </div>
+                                                    <p className='text-xs text-gray-500'>
+                                                        {new Date(review.createdAt).toLocaleDateString('en-US', { 
+                                                            month: 'short', 
+                                                            day: 'numeric', 
+                                                            year: 'numeric' 
+                                                        })}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className='flex items-center gap-1 mb-3'>
+                                                {[...Array(5)].map((_, i) => (
+                                                    <span key={i} className={`text-lg ${i < review.ratings.overall ? 'text-yellow-500' : 'text-gray-300'}`}>★</span>
+                                                ))}
+                                            </div>
+
+                                            <p className='text-gray-700 text-sm leading-relaxed mb-3'>{review.comment}</p>
+
+                                            <div className='flex items-center gap-2 text-xs flex-wrap'>
+                                                <span className='px-2 py-1 bg-red-100 text-red-700 rounded-full font-semibold'>Staff: {review.ratings.staff || 0}⭐</span>
+                                                <span className='px-2 py-1 bg-green-100 text-green-700 rounded-full font-semibold'>Service: {review.ratings.service || 0}⭐</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
 
                     {/* Description */}
@@ -664,7 +877,7 @@ const RoomDetails = () => {
                                 </p>
                                 <div className='flex items-center gap-3 mb-3'>
                                     <StarRating />
-                                    <p className='text-gray-700 font-medium'>⭐ 200+ reviews</p>
+                                    <p className='text-gray-700 font-medium'>⭐ {reviews.length}+ reviews</p>
                                 </div>
                                 <button className='px-6 py-2 rounded-xl text-white bg-gradient-to-r from-red-600 to-green-600 hover:from-red-700 hover:to-green-700 transition-all shadow-lg hover:shadow-xl font-bold border-2 border-yellow-400 hover:scale-105'>
                                     📞 Contact Host
