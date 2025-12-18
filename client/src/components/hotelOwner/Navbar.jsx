@@ -124,7 +124,7 @@ const OwnerNavbar = () => {
       `}</style>
 
       <nav className={`
-        sticky top-0 z-50 transition-all duration-500 overflow-hidden
+        sticky top-0 z-50 transition-all duration-500 
         ${isScrolled 
           ? 'bg-gradient-to-r from-red-700/95 via-green-700/95 to-red-700/95 backdrop-blur-lg shadow-2xl py-3 border-b-2 border-yellow-400' 
           : 'bg-gradient-to-r from-red-800 via-green-800 to-red-800 py-4'
@@ -183,7 +183,6 @@ const OwnerNavbar = () => {
             >
               <FontAwesomeIcon icon={faHome} />
               <span>Home</span>
-              <span className="text-sm">🏠</span>
             </Link>
           </div>
 

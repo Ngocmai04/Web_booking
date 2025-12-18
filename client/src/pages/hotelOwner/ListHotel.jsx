@@ -52,11 +52,11 @@ const ListHotel = () => {
         <div>
             {/* Header */}
     <div className="mb-10 relative">
-        <div className="absolute -left-6 text-6xl opacity-20 animate-bounce text-red-600">
+        <div className="absolute -top-3 -left-4.5 text-6xl opacity-20 animate-bounce text-red-600">
             🏨
         </div>
         <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-green-600 to-red-600 mb-3 drop-shadow-lg flex items-center gap-3">
-            <FaHotel className="text-green-600" /> Manage Your Hotels
+            <FaHotel className="text-red-600" /> Manage Your Hotels
         </h1>
         <p className="text-gray-700 font-semibold text-lg leading-relaxed">
             Feel the magic of Christmas while managing your hotels. View, edit, or remove your hotel listings.
