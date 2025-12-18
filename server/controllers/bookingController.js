@@ -42,6 +42,22 @@ export const createBooking = async (req, res) => {
     const { room, checkInDate, checkOutDate, guests } = req.body;
 
     const user = req.user._id;
+    const userRole = req.user?.role;
+
+    // Get Room and Hotel data first
+    const roomData = await Room.findById(room).populate("hotel");
+
+    if (!roomData) {
+      return res.status(404).json({ success: false, message: "Room not found" });
+    }
+
+    // Owner không được phép booking phòng của khách sạn do chính họ sở hữu
+    if (userRole === "hotelOwner" && roomData.hotel.owner.toString() === user.toString()) {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Owners cannot book rooms in their own hotel" 
+      });
+    }
 
     // Before Booking Check Availability
     const isAvailable = await checkAvailability({
@@ -54,8 +70,6 @@ export const createBooking = async (req, res) => {
       return res.json({ success: false, message: "Room is not available" });
     }
 
-    // Get totalPrice from Room
-    const roomData = await Room.findById(room).populate("hotel");
     let totalPrice = roomData.pricePerNight;
 
     // Calculate totalPrice based on nights

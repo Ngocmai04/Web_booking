@@ -325,6 +325,24 @@ const RoomDetails = () => {
                 </button>
               </div>
             </div>
+                        {/* Write Review Section in Sidebar */}
+                        {/* Ẩn nút Write Review trong sidebar cho owner */}
+                        {!isOwner && (
+                            <div className="sticky bottom-0 bg-gradient-to-br from-yellow-100 to-green-100 p-6 border-t-4 border-red-300">
+                                <button 
+                                    onClick={() => {
+                                        setShowReviewsSidebar(false);
+                                        setShowReviewForm(true);
+                                    }}
+                                    className="w-full bg-gradient-to-r from-red-600 to-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all border-3 border-yellow-400"
+                                >
+                                    ✍️ Write Your Review
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Reviews List */}
             <div className="p-6 space-y-4">
@@ -909,6 +927,30 @@ const RoomDetails = () => {
                       required
                     />
                   </div>
+                    {/* Reviews Section */}
+                    <div className='bg-gradient-to-br from-white via-green-50 to-red-50 p-6 rounded-3xl shadow-2xl border-4 border-green-300 mb-6'>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className='text-2xl font-bold bg-gradient-to-r from-red-700 to-green-700 bg-clip-text text-transparent flex items-center gap-2'>
+                                ⭐ Guest Reviews
+                            </h2>
+                            <div className="flex gap-3">
+                                {/* Ẩn nút Write Review cho owner */}
+                                {!isOwner && (
+                                    <button 
+                                        onClick={() => setShowReviewForm(true)}
+                                        className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg border-2 border-red-500"
+                                    >
+                                        ✍️ Write Review
+                                    </button>
+                                )}
+                                <button 
+                                    onClick={() => setShowReviewsSidebar(true)}
+                                    className="px-4 py-2 bg-gradient-to-r from-red-500 to-green-500 text-white rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg"
+                                >
+                                    View All ({reviews.length})
+                                </button>
+                            </div>
+                        </div>
 
                   <div>
                     <label className="font-bold text-red-700 flex items-center gap-2 mb-2">
@@ -938,6 +980,89 @@ const RoomDetails = () => {
               </div>
             </div>
           </div>
+                        {/* Review Cards Preview */}
+                        {loading ? (
+                            <div className="text-center py-8">
+                                <p className="text-gray-500">Loading reviews...</p>
+                            </div>
+                        ) : reviews.length === 0 ? (
+                            <div className="text-center py-8">
+                                <p className="text-gray-500 mb-4">No reviews yet. Be the first to review!</p>
+                                {/* Ẩn nút Write First Review cho owner */}
+                                {!isOwner && (
+                                    <button 
+                                        onClick={() => setShowReviewForm(true)}
+                                        className="px-6 py-3 bg-gradient-to-r from-red-500 to-green-500 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
+                                    >
+                                        ✍️ Write First Review
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                                {displayedReviews.map((review) => {
+                                    const isMyReview = review.user?._id === user?.id;
+                                    return (
+                                        <div key={review._id} className='bg-white p-5 rounded-2xl border-3 border-red-200 shadow-lg hover:shadow-2xl hover:scale-105 transition-all cursor-pointer relative'>
+                                            {isMyReview && (
+                                                <div className="absolute top-2 right-2 flex gap-1">
+                                                    <button
+                                                        onClick={() => handleEditReview(review)}
+                                                        className="p-1 bg-blue-500 text-white rounded-lg text-xs hover:bg-blue-600"
+                                                        title="Edit"
+                                                    >
+                                                        ✏️
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteReview(review._id)}
+                                                        className="p-1 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600"
+                                                        title="Delete"
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                </div>
+                                            )}
+                                            <div className='flex items-center gap-3 mb-3'>
+                                                <img 
+                                                    src={review.user?.image || user?.imageUrl || "https://i.pravatar.cc/150?img=10"} 
+                                                    alt={review.user?.username || "User"} 
+                                                    className='w-12 h-12 rounded-full border-3 border-green-400 shadow-md' 
+                                                />
+                                                <div className='flex-1'>
+                                                    <div className="flex items-center gap-1">
+                                                        <p className='font-bold text-gray-800'>
+                                                            {isMyReview ? 'You' : (review.user?.username || "Anonymous")}
+                                                        </p>
+                                                        {isMyReview && <span className="text-xs text-green-600">✓</span>}
+                                                    </div>
+                                                    <p className='text-xs text-gray-500'>
+                                                        {new Date(review.createdAt).toLocaleDateString('en-US', { 
+                                                            month: 'short', 
+                                                            day: 'numeric', 
+                                                            year: 'numeric' 
+                                                        })}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className='flex items-center gap-1 mb-3'>
+                                                {[...Array(5)].map((_, i) => (
+                                                    <span key={i} className={`text-lg ${i < review.ratings.overall ? 'text-yellow-500' : 'text-gray-300'}`}>★</span>
+                                                ))}
+                                            </div>
+
+                                            <p className='text-gray-700 text-sm leading-relaxed mb-3'>{review.comment}</p>
+
+                                            <div className='flex items-center gap-2 text-xs flex-wrap'>
+                                                <span className='px-2 py-1 bg-red-100 text-red-700 rounded-full font-semibold'>Staff: {review.ratings.staff || 0}⭐</span>
+                                                <span className='px-2 py-1 bg-green-100 text-green-700 rounded-full font-semibold'>Service: {review.ratings.service || 0}⭐</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
 
           {/* Amenities & Features */}
           <div className="bg-gradient-to-br from-white via-red-50 to-green-50 p-6 rounded-3xl shadow-2xl border-4 border-red-200 mb-6">
