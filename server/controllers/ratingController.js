@@ -1,4 +1,5 @@
 import Rating from "../models/Rating.js";
+import Hotel from "../models/Hotel.js";
 import mongoose from "mongoose";
 
 // Get all ratings for a hotel
@@ -36,12 +37,21 @@ export const createRating = async (req, res) => {
     const { hotel, ratings, comment } = req.body;
     
     const userId = req.user?._id;
+    const userRole = req.user?.role;
 
     if (!userId) {
-      console.error('❌ No userId found!');
+      console.error('No userId found!');
       return res.status(401).json({
         success: false,
         message: "Please login to submit a review",
+      });
+    }
+
+    //  Owner không được phép tạo review cho bất kỳ khách sạn nào
+    if (userRole === "hotelOwner") {
+      return res.status(403).json({
+        success: false,
+        message: "Owners cannot review their own hotel",
       });
     }
 
@@ -56,7 +66,7 @@ export const createRating = async (req, res) => {
     const existingRating = await Rating.findOne({ hotel, user: userId });
 
     if (existingRating) {
-      // ✅ Return existing review info instead of error
+      // Return existing review info instead of error
       return res.status(200).json({
         success: false,
         message: "You have already rated this hotel.",
@@ -79,7 +89,7 @@ export const createRating = async (req, res) => {
     });
 
     await newRating.save();
-    console.log('✅ Rating saved:', newRating._id);
+    console.log('Rating saved:', newRating._id);
 
     // Populate user info before sending response
     await newRating.populate('user', 'username image email');
@@ -90,7 +100,7 @@ export const createRating = async (req, res) => {
       rating: newRating,
     });
   } catch (error) {
-    console.error('❌ Error in createRating:', error);
+    console.error('Error in createRating:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -104,6 +114,15 @@ export const updateRating = async (req, res) => {
     const { id } = req.params;
     const { ratings, comment } = req.body;
     const userId = req.user._id;
+    const userRole = req.user?.role;
+
+    // Owner không được phép update review
+    if (userRole === "hotelOwner") {
+      return res.status(403).json({
+        success: false,
+        message: "Owners cannot review their own hotel",
+      });
+    }
 
     const rating = await Rating.findById(id);
 

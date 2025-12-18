@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 const RoomDetails = () => {
     const { id } = useParams();
-    const { facilityIcons, rooms, getToken, axios, navigate, user } = useAppContext(); // ✅ Thêm user từ context
+    const { facilityIcons, rooms, getToken, axios, navigate, user, isOwner } = useAppContext(); // ✅ Thêm user, isOwner từ context
 
     const [room, setRoom] = useState(null);
     const [mainImage, setMainImage] = useState(null);
@@ -366,17 +366,20 @@ const RoomDetails = () => {
                         </div>
 
                         {/* Write Review Section in Sidebar */}
-                        <div className="sticky bottom-0 bg-gradient-to-br from-yellow-100 to-green-100 p-6 border-t-4 border-red-300">
-                            <button 
-                                onClick={() => {
-                                    setShowReviewsSidebar(false);
-                                    setShowReviewForm(true);
-                                }}
-                                className="w-full bg-gradient-to-r from-red-600 to-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all border-3 border-yellow-400"
-                            >
-                                ✍️ Write Your Review
-                            </button>
-                        </div>
+                        {/* Ẩn nút Write Review trong sidebar cho owner */}
+                        {!isOwner && (
+                            <div className="sticky bottom-0 bg-gradient-to-br from-yellow-100 to-green-100 p-6 border-t-4 border-red-300">
+                                <button 
+                                    onClick={() => {
+                                        setShowReviewsSidebar(false);
+                                        setShowReviewForm(true);
+                                    }}
+                                    className="w-full bg-gradient-to-r from-red-600 to-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all border-3 border-yellow-400"
+                                >
+                                    ✍️ Write Your Review
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -709,12 +712,15 @@ const RoomDetails = () => {
                                 ⭐ Guest Reviews
                             </h2>
                             <div className="flex gap-3">
-                                <button 
-                                    onClick={() => setShowReviewForm(true)}
-                                    className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg border-2 border-red-500"
-                                >
-                                    ✍️ Write Review
-                                </button>
+                                {/* Ẩn nút Write Review cho owner */}
+                                {!isOwner && (
+                                    <button 
+                                        onClick={() => setShowReviewForm(true)}
+                                        className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg border-2 border-red-500"
+                                    >
+                                        ✍️ Write Review
+                                    </button>
+                                )}
                                 <button 
                                     onClick={() => setShowReviewsSidebar(true)}
                                     className="px-4 py-2 bg-gradient-to-r from-red-500 to-green-500 text-white rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg"
@@ -777,12 +783,15 @@ const RoomDetails = () => {
                         ) : reviews.length === 0 ? (
                             <div className="text-center py-8">
                                 <p className="text-gray-500 mb-4">No reviews yet. Be the first to review!</p>
-                                <button 
-                                    onClick={() => setShowReviewForm(true)}
-                                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-green-500 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
-                                >
-                                    ✍️ Write First Review
-                                </button>
+                                {/* Ẩn nút Write First Review cho owner */}
+                                {!isOwner && (
+                                    <button 
+                                        onClick={() => setShowReviewForm(true)}
+                                        className="px-6 py-3 bg-gradient-to-r from-red-500 to-green-500 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
+                                    >
+                                        ✍️ Write First Review
+                                    </button>
+                                )}
                             </div>
                         ) : (
                             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
