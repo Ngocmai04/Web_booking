@@ -5,7 +5,6 @@ import {
   faHome,
   faHotel,
   faBed,
-  faPlus,
   faChevronLeft,
   faChevronRight,
   faSnowflake,
@@ -16,7 +15,12 @@ const Sidebar = () => {
   const location = useLocation()
 
   const menuItems = [
-    { path: '/owner', icon: faHome, label: 'Dashboard', emoji: '🎄' },
+    { path: '/owner', 
+      icon: faHome, 
+      label: 'Dashboard', 
+      emoji: '🎄',
+      subtext: 'Overview & Stats'
+    },
     { 
       path: '/owner/hotels', 
       icon: faHotel, 
@@ -29,14 +33,7 @@ const Sidebar = () => {
       icon: faBed, 
       label: 'My Rooms', 
       emoji: '🛏️',
-      subtext: 'View all rooms'
-    },
-    { 
-      path: '/owner/add-room', 
-      icon: faPlus, 
-      label: 'Add Room', 
-      emoji: '🎁',
-      subtext: 'Create listing'
+      subtext: 'Manage rooms'
     },
   ]
 
