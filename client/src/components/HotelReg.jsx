@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
-import { assets, cities } from "../assets/assets";
+import { assets } from "../assets/assets";
 
 const HotelReg = () => {
   const {
@@ -166,27 +166,22 @@ const HotelReg = () => {
             />
           </div>
 
-          <div className="w-full mt-4 max-w-60 mr-auto group">
+          <div className="w-full mt-4 group">
             <label
               htmlFor="city"
               className="font-semibold text-green-700 flex items-center gap-2"
             >
               🌆 City
             </label>
-            <select
+            <input
               id="city"
               onChange={(e) => setCity(e.target.value)}
               value={city}
-              className="border-2 border-green-200 rounded-lg w-full px-4 py-3 mt-1 outline-none focus:border-red-500 focus:ring-4 focus:ring-red-200 font-light bg-white hover:bg-green-50 transition-all duration-300 cursor-pointer focus:shadow-lg"
+              placeholder="Enter city name"
+              className="border-2 border-green-200 rounded-lg w-full px-4 py-3 mt-1 outline-none focus:border-red-500 focus:ring-4 focus:ring-red-200 font-light bg-white hover:bg-green-50 transition-all duration-300 focus:shadow-lg"
+              type="text"
               required
-            >
-              <option value="">Select City</option>
-              {cities.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <button className="relative bg-gradient-to-r from-red-600 via-green-600 to-red-600 bg-size-200 hover:bg-right-bottom text-white font-bold mx-auto px-8 py-3 rounded-full cursor-pointer mt-6 shadow-lg hover:shadow-2xl transform hover:scale-110 transition-all duration-300 border-2 border-yellow-400 hover:border-yellow-300 overflow-hidden group block">
