@@ -26,7 +26,6 @@ const AddRoom = () => {
 
     const onSubmitHandler = async (e) => {
         e.preventDefault()
-        // Check if all inputs are filled
         if (!inputs.roomType || !inputs.pricePerNight || !inputs.amenities || !Object.values(images).some(image => image) || !selectedHotelId) {
             toast.error("Please fill in all the details")
             return;
@@ -36,12 +35,10 @@ const AddRoom = () => {
             const formData = new FormData()
             formData.append('roomType', inputs.roomType)
             formData.append('pricePerNight', inputs.pricePerNight)
-            // Converting Amenities to Array & keeping only enabled Amenities
             const amenities = Object.keys(inputs.amenities).filter(key => inputs.amenities[key])
             formData.append('amenities', JSON.stringify(amenities))
             formData.append('hotelId', selectedHotelId)
 
-            // Adding Images to FormData
             Object.keys(images).forEach((key) => {
                 images[key] && formData.append('images', images[key])
             })
@@ -89,66 +86,143 @@ const AddRoom = () => {
 
     return (
         <form onSubmit={onSubmitHandler}>
-            <Title align='left' font='outfit' title='Add Room' subTitle='Fill in the details carefully and accurate room details, pricing, and amenities, to enhance the user booking experience.' />
-            {/* Upload Area For Images */}
-            <p className='text-red-600 mt-10'>Images</p>
-            <div className='grid grid-cols-2 sm:flex gap-4 my-2 flex-wrap'>
-                {Object.keys(images).map((key) => (
-                    <label key={key} htmlFor={`roomImage${key}`}>
-                        <img className='max-h-13 cursor-pointer opacity-80' src={images[key] ? URL.createObjectURL(images[key]) : assets.uploadArea} alt="" />
-                        <input type="file" accept='image/*' id={`roomImage${key}`} hidden
-                            onChange={e => setImages({ ...images, [key]: e.target.files[0] })} />
-                    </label>
-                ))}
+            <div className="mb-8">
+                <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-green-600 to-red-600 mb-2">
+                    🏨 Add Room
+                </h1>
+                <p className="text-gray-700 leading-relaxed">
+                    Fill in the details carefully and accurate room details, pricing, and amenities, to enhance the user booking experience.
+                </p>
             </div>
 
-            <div className='w-full flex max-sm:flex-col sm:gap-4 mt-4'>
-
-                <div className='flex-1 max-w-48'>
-                    <p className='text-red-600 mt-4'>Hotel</p>
-                    <select className='border opacity-70 border-gray-300 mt-1 rounded p-2 w-full' value={selectedHotelId} onChange={(e) => setSelectedHotelId(e.target.value)}>
-                        <option value=''>Select Hotel</option>
-                        {ownerHotels.map((hotel) => (
-                            <option key={hotel._id} value={hotel._id}>{hotel.name} - {hotel.city}</option>
-                        ))}
-                    </select>
+            {/* Upload Images */}
+            <div className="bg-gradient-to-br from-yellow-50 to-red-50 border-4 border-yellow-300 rounded-3xl p-6 shadow-xl mb-6">
+                <p className='text-red-700 font-black text-xl mb-4 flex items-center gap-2'>
+                    📸 Room Images
+                </p>
+                <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+                    {Object.keys(images).map((key) => (
+                        <label 
+                            key={key} 
+                            htmlFor={`roomImage${key}`}
+                            className="relative group cursor-pointer"
+                        >
+                            <div className="relative overflow-hidden rounded-2xl border-4 border-green-300 hover:border-red-400 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105">
+                                <img 
+                                    className='w-full h-32 object-cover' 
+                                    src={images[key] ? URL.createObjectURL(images[key]) : assets.uploadArea} 
+                                    alt="" 
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span className="text-white font-bold">Click to upload</span>
+                                </div>
+                            </div>
+                            <input 
+                                type="file" 
+                                accept='image/*' 
+                                id={`roomImage${key}`} 
+                                hidden
+                                onChange={e => setImages({ ...images, [key]: e.target.files[0] })} 
+                            />
+                        </label>
+                    ))}
                 </div>
-
-                <div className='flex-1 max-w-48'>
-                    <p className='text-red-600 mt-4'>Room Type</p>
-                    <select className='border opacity-70 border-gray-300 mt-1 rounded p-2 w-full' value={inputs.roomType} onChange={(e) => setInputs({ ...inputs, roomType: e.target.value })}>
-                        <option value=''>Select Room Type</option>
-                        <option value='Single Bed'>Single Bed</option>
-                        <option value='Double Bed'>Double Bed</option>
-                        <option value='Luxury Room'>Luxury Room</option>
-                        <option value='Family Suite'>Family Suite</option>
-                    </select>
-                </div>
-
-                <div>
-                    <p className='mt-4 text-red-600'>Price <span className='text-xs'>/night</span></p>
-                    <input type="number" placeholder='0' className='border border-gray-300 mt-1 rounded p-2 w-24' value={inputs.pricePerNight} onChange={(e) => setInputs({ ...inputs, pricePerNight: e.target.value })} />
-                </div>
-
             </div>
 
-            <p className='text-red-600 mt-4'>Amenities</p>
-            <div className='flex flex-col flex-wrap mt-1 text-gray-400 max-w-sm'>
-                {Object.keys(inputs.amenities).map((amenity, index) => (
-                    <div key={index}>
-                        <input type='checkbox' id={`amenities${index + 1}`} checked={inputs.amenities[amenity]}
-                            onChange={() => setInputs({ ...inputs, amenities: { ...inputs.amenities, [amenity]: !inputs.amenities[amenity] } })}
-                        />
-                        <label htmlFor={`amenities${index + 1}`}> {amenity} </label>
+            {/* Form Fields */}
+            <div className="bg-gradient-to-br from-green-50 to-blue-50 border-4 border-green-300 rounded-3xl p-6 shadow-xl mb-6">
+                <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+                    {/* Hotel Selection */}
+                    <div>
+                        <p className='text-green-700 font-black mb-2 flex items-center gap-2'>
+                            🏨 Hotel
+                        </p>
+                        <select 
+                            className='border-3 border-green-300 rounded-xl p-3 w-full font-semibold text-gray-700 focus:border-red-500 focus:ring-4 focus:ring-red-200 outline-none transition-all shadow-md hover:shadow-lg bg-white' 
+                            value={selectedHotelId} 
+                            onChange={(e) => setSelectedHotelId(e.target.value)}
+                        >
+                            <option value=''>Select Hotel</option>
+                            {ownerHotels.map((hotel) => (
+                                <option key={hotel._id} value={hotel._id}>{hotel.name} - {hotel.city}</option>
+                            ))}
+                        </select>
                     </div>
-                ))}
+
+                    {/* Room Type */}
+                    <div>
+                        <p className='text-red-700 font-black mb-2 flex items-center gap-2'>
+                            🛏️ Room Type
+                        </p>
+                        <select 
+                            className='border-3 border-red-300 rounded-xl p-3 w-full font-semibold text-gray-700 focus:border-green-500 focus:ring-4 focus:ring-green-200 outline-none transition-all shadow-md hover:shadow-lg bg-white' 
+                            value={inputs.roomType} 
+                            onChange={(e) => setInputs({ ...inputs, roomType: e.target.value })}
+                        >
+                            <option value=''>Select Room Type</option>
+                            <option value='Single Bed'>Single Bed</option>
+                            <option value='Double Bed'>Double Bed</option>
+                            <option value='Luxury Room'>Luxury Room</option>
+                            <option value='Family Suite'>Family Suite</option>
+                        </select>
+                    </div>
+
+                    {/* Price */}
+                    <div>
+                        <p className='text-blue-700 font-black mb-2 flex items-center gap-2'>
+                            💵 Price <span className='text-sm font-normal'>/night</span>
+                        </p>
+                        <input 
+                            type="number" 
+                            placeholder='0' 
+                            className='border-3 border-blue-300 rounded-xl p-3 w-full font-bold text-gray-700 focus:border-yellow-500 focus:ring-4 focus:ring-yellow-200 outline-none transition-all shadow-md hover:shadow-lg bg-white' 
+                            value={inputs.pricePerNight} 
+                            onChange={(e) => setInputs({ ...inputs, pricePerNight: e.target.value })} 
+                        />
+                    </div>
+                </div>
             </div>
 
-            <div className='flex items-center gap-4 mt-8'>
-                <button className='bg-primary text-white px-8 py-2 rounded cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed' disabled={loading || !hotelsAvailable}>
-                    {loading ? "Adding..." : "Add Room"}
+            {/* Amenities */}
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-4 border-purple-300 rounded-3xl p-6 shadow-xl mb-6">
+                <p className='text-purple-700 font-black text-xl mb-4 flex items-center gap-2'>
+                    ✨ Amenities
+                </p>
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
+                    {Object.keys(inputs.amenities).map((amenity, index) => (
+                        <label 
+                            key={index}
+                            className="flex items-center gap-3 p-3 bg-white border-2 border-purple-200 rounded-xl cursor-pointer hover:border-purple-400 hover:shadow-lg transition-all group"
+                        >
+                            <input 
+                                type='checkbox' 
+                                id={`amenities${index + 1}`} 
+                                checked={inputs.amenities[amenity]}
+                                onChange={() => setInputs({ ...inputs, amenities: { ...inputs.amenities, [amenity]: !inputs.amenities[amenity] } })}
+                                className="w-5 h-5 text-purple-600 rounded border-2 border-purple-300 focus:ring-2 focus:ring-purple-500"
+                            />
+                            <span className="font-semibold text-gray-700 group-hover:text-purple-700 transition-colors">
+                                {amenity}
+                            </span>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className='flex items-center gap-4'>
+                <button 
+                    type="submit"
+                    className='bg-gradient-to-r from-red-600 via-green-600 to-red-600 text-white font-black px-10 py-4 rounded-2xl cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl hover:scale-105 transition-all border-4 border-yellow-400 text-lg' 
+                    disabled={loading || !hotelsAvailable}
+                >
+                    {loading ? "🎁 Adding..." : "🎄 Add Room"}
                 </button>
-                {!hotelsAvailable && <p className='text-sm text-red-500'>Please register a hotel before adding rooms.</p>}
+                {!hotelsAvailable && (
+                    <div className="bg-red-100 border-3 border-red-400 rounded-xl px-4 py-2">
+                        <p className='text-sm text-red-700 font-bold'>Please register a hotel before adding rooms.</p>
+                    </div>
+                )}
             </div>
         </form>
     )
