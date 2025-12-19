@@ -3,10 +3,22 @@ import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faBell, faGift, 
-  faHome, faUser, faSignOutAlt
+  faHome, faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons'
 import { assets } from '../../assets/assets'
 import { useAppContext } from '../../context/AppContext'
+import { UserButton, useUser, useClerk } from '@clerk/clerk-react'
+
+// Christmas Bell Icon
+const ChristmasBell = () => (
+  <svg
+    className="w-5 h-5 text-yellow-300 animate-swing"
+    fill="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path d="M12 2a2 2 0 0 1 2 2v.5a7.5 7.5 0 0 1 7.5 7.5v3.5a3 3 0 0 0 .5 1.667V18H2v-1.333A3 3 0 0 0 2.5 15v-3.5A7.5 7.5 0 0 1 10 4V4a2 2 0 0 1 2-2zm-2 18h4a2 2 0 1 1-4 0z" />
+  </svg>
+);
 
 // Animated Snowflake Component
 const Snowflake = () => (
@@ -55,7 +67,9 @@ const OwnerNavbar = () => {
   const [showNotifications, setShowNotifications] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   
-  const { user, logout, navigate } = useAppContext()
+  const { logout} = useAppContext()
+  const { user: clerkUser, isLoaded } = useUser()
+  const { signOut } = useClerk()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,6 +86,15 @@ const OwnerNavbar = () => {
   ]
 
   const unreadCount = notifications.filter(n => !n.read).length
+
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      if (logout) logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
 
   return (
     <>
@@ -153,22 +176,28 @@ const OwnerNavbar = () => {
           {/* Left Section - Logo & Home Button */}
           <div className="flex items-center gap-4">
             <Link to="/owner" className="group animate-float">
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <img 
-                    src={assets.logo} 
-                    alt="Logo" 
-                    className="h-10 w-10 object-contain filter brightness-0 invert drop-shadow-[0_0_15px_rgba(255,255,255,1)] group-hover:scale-110 transition-transform"
-                  />
-                  <div className="absolute -top-1 -right-1 text-yellow-300 animate-swing text-sm">
+              <div className="flex items-center space-x-6"> 
+                <div className="relative translate-y-2">
+                  <img
+                        src={assets.logo}
+                        alt="logo"
+                        className={`h-10 transition-all duration-300 ${
+                          isScrolled
+                            ? "filter brightness-100 drop-shadow-[0_0_15px_rgba(255,215,0,1)]"
+                            : "drop-shadow-[0_0_12px_white]"
+                        }`}
+                      />
+                      {!isScrolled && <Snowflake />}
+                      {isScrolled && <ChristmasBell />}
+                  <div className="absolute -top-0.5 -right-4 text-yellow-300 animate-swing text-lg">
                     🎄
                   </div>
                 </div>
-                <div className="hidden sm:flex flex-col">
-                  <span className="text-white font-bold text-xl group-hover:text-yellow-300 transition-colors drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                <div className="hidden sm:flex flex-col translate-y-1">
+                  <span className="text-white font-bold text-2xl group-hover:text-yellow-300 transition-colors drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
                     Hotel Dashboard
                   </span>
-                  <span className="text-yellow-200 text-xs flex items-center">
+                  <span className="text-yellow-200 text-sm flex items-center">
                     <Snowflake />
                     <span className="ml-1">Christmas Special</span>
                   </span>
@@ -253,55 +282,32 @@ const OwnerNavbar = () => {
               )}
             </div>
 
-            {/* User Profile - Desktop */}
-            <div className="hidden md:block relative group">
-              <div className="flex items-center space-x-3 p-2 rounded-xl hover:bg-white/10 transition-all cursor-pointer">
-                <div className="relative">
-                  <img 
-                    src={user?.imageUrl || 'https://placehold.co/40'} 
-                    alt="Profile" 
-                    className="w-10 h-10 rounded-full border-2 border-yellow-400 object-cover shadow-lg"
-                  />
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-red-800 shadow-md"></div>
-                </div>
-                <div>
-                  <p className="text-white font-semibold text-sm drop-shadow-md">
-                    {user?.fullName || 'Hotel Owner'}
-                  </p>
-                  <p className="text-yellow-200 text-xs">🎅 Premium Host</p>
-                </div>
-              </div>
-
-              {/* Dropdown Menu */}
-              <div className="absolute right-0 mt-2 w-48 bg-gradient-to-b from-red-900 to-green-900 rounded-xl shadow-2xl border-2 border-yellow-400 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 backdrop-blur-lg">
-                <div className="p-4 border-b border-white/20">
-                  <p className="text-white font-bold">{user?.fullName}</p>
-                  <p className="text-yellow-200 text-sm">Hotel Owner 🏨</p>
-                </div>
-                <div className="p-2">
-                  <Link
-                    to="/owner/profile"
-                    className="flex items-center px-3 py-2 text-white hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <FontAwesomeIcon icon={faUser} className="mr-3 text-yellow-300" />
-                    My Profile
-                  </Link>
-                  <button
-                    onClick={() => navigate('/')}
-                    className="flex items-center w-full px-3 py-2 text-white hover:bg-white/10 rounded-lg transition-colors mt-1"
-                  >
-                    <FontAwesomeIcon icon={faHome} className="mr-3 text-green-300" />
-                    Go to Home
-                  </button>
-                  <button
-                    onClick={logout}
-                    className="flex items-center w-full px-3 py-2 text-red-300 hover:bg-white/10 rounded-lg transition-colors mt-1"
-                  >
-                    <FontAwesomeIcon icon={faSignOutAlt} className="mr-3" />
-                    Logout
-                  </button>
-                </div>
-              </div>
+            {/* User Profile with Clerk UserButton - Desktop */}
+            <div className="hidden md:flex items-center space-x-3">
+              {isLoaded && clerkUser && (
+                <>
+                  <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent p-0.5 w-10 h-10 flex items-center justify-center overflow-hidden">
+                                  <UserButton
+                                    appearance={{
+                                      elements: {
+                                        userButtonAvatarBox: "!w-12 !h-12",
+                                        userButtonImage: "!w-full !h-full",
+                                        userButtonTrigger:
+                                          "!p-0 !border-none !shadow-none focus:!shadow-none",
+                                      },
+                                    }}
+                                  />
+                  </div>
+                  
+                  {/* User Info (Name) */}
+                  <div className="text-left">
+                    <p className="text-white font-semibold text-sm drop-shadow-md">
+                      {clerkUser.fullName || `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}` || clerkUser.username || 'Hotel Owner'}
+                    </p>
+                    <p className="text-yellow-200 text-xs">🎅 Premium Host</p>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -333,18 +339,28 @@ const OwnerNavbar = () => {
           </svg>
         </button>
 
-        {/* User Info */}
-        <div className="flex flex-col items-center gap-2 mb-4">
-          <img 
-            src={user?.imageUrl || 'https://placehold.co/80'} 
-            alt="Profile" 
-            className="w-20 h-20 rounded-full border-4 border-yellow-400 object-cover shadow-2xl"
-          />
-          <p className="text-xl text-white font-bold drop-shadow-lg">
-            {user?.fullName || 'Hotel Owner'}
-          </p>
-          <p className="text-yellow-200 text-sm">🎅 Premium Host</p>
-        </div>
+        {/* User Info with Clerk UserButton */}
+        {isLoaded && clerkUser && (
+          <div className="flex flex-col items-center gap-3 mb-4">
+            {/* Avatar */}
+            <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-red-800 p-0.5">
+              <UserButton
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "w-16 h-16",
+                    userButtonTrigger: "focus:shadow-none"
+                  }
+                }}
+              />
+            </div>
+            
+            {/* Name */}
+            <p className="text-xl text-white font-bold drop-shadow-lg">
+              {clerkUser.fullName || `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}` || clerkUser.username || 'Hotel Owner'}
+            </p>
+            <p className="text-yellow-200 text-sm">🎅 Premium Host</p>
+          </div>
+        )}
 
         {/* Mobile Navigation */}
         <Link
@@ -356,20 +372,11 @@ const OwnerNavbar = () => {
           Go to Home 🏠
         </Link>
 
-        <Link
-          to="/owner/profile"
-          onClick={() => setIsMobileMenuOpen(false)}
-          className="text-2xl hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] text-white flex items-center gap-2"
-        >
-          <FontAwesomeIcon icon={faUser} />
-          My Profile 👤
-        </Link>
-
         {/* Logout Button */}
         <button
           onClick={() => {
             setIsMobileMenuOpen(false)
-            logout()
+            handleLogout()
           }}
           className="mt-4 bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-3 rounded-full shadow-lg font-bold text-lg hover:scale-105 transition-all flex items-center gap-2"
         >
