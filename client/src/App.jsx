@@ -1,6 +1,7 @@
 import React from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
+import ProtectedRoute from './components/ProtectedRoute'; // Import component bảo vệ
 import Navbar from './components/Navbar'
 import Layout from './pages/hotelOwner/Layout'
 import Dashboard from './pages/hotelOwner/Dashboard'
@@ -143,22 +144,26 @@ const App = () => {
       {/* Main Content */}
       <div className='min-h-[70vh] relative z-[10]'>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/rooms" element={<AllRooms />} />
           <Route path="/rooms/:id" element={<RoomDetails />} />
           <Route path="my-bookings" element={<MyBookings />} />
           <Route path="/loader/:nextUrl" element={<Loader />} />
 
-          {/* Owner routes */}
-          <Route path="/owner" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="hotels" element={<ListHotel />} />
-            <Route path="add-hotel" element={<AddHotel />} />
-            <Route path="edit-hotel/:id" element={<EditHotel />} />
-            <Route path="list-room" element={<ListRoom />} />
+          {/* 👇 KHU VỰC ĐƯỢC BẢO VỆ (PROTECTED ROUTES) 👇 */}
+          <Route element={<ProtectedRoute />}>
+             {/* Owner routes - Đã được bọc bên trong ProtectedRoute */}
+             <Route path="/owner" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="hotels" element={<ListHotel />} />
+              <Route path="add-hotel" element={<AddHotel />} />
+              <Route path="edit-hotel/:id" element={<EditHotel />} />
+              <Route path="list-room" element={<ListRoom />} />
+            </Route>
           </Route>
 
-          {/* Admin routes */}
+          {/* Admin routes (Bạn có thể bọc ProtectedRoute cho Admin ở đây nếu muốn) */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<ManageUsers />} />

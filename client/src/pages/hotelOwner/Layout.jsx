@@ -1,18 +1,30 @@
 import React, { useEffect } from 'react'
 import OwnerNavbar from '../../components/hotelOwner/Navbar'
 import Sidebar from '../../components/hotelOwner/Sidebar'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { useAppContext } from '../../context/AppContext'
+import { useUser } from '@clerk/clerk-react'
 
 const Layout = () => {
-  const { isOwner, navigate } = useAppContext()
+  
+const { isLoaded} = useUser(); 
+  const navigate = useNavigate();
+  
+  const { isOwner, isUserDataLoaded } = useAppContext();
 
   useEffect(() => {
-    if (!isOwner) {
-      navigate('/')
+    if (isLoaded && isUserDataLoaded && !isOwner) {
+       navigate('/');
     }
-  }, [isOwner, navigate])
-
+  }, [isLoaded, isUserDataLoaded, isOwner, navigate])
+if (!isLoaded || !isUserDataLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-red-950">
+         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-green-500"></div>
+         <p className="ml-4 text-white font-medium">Checking access permissions...</p>
+      </div>
+    );
+  }
   return (
     <div className='min-h-screen bg-gradient-to-br from-red-950 via-green-950 to-red-900 overflow-hidden relative'>
       {/* Animated Background */}

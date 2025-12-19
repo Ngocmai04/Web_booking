@@ -18,6 +18,7 @@ export const AppProvider = ({ children }) => {
   const [isOwner, setIsOwner] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState("user");
+  const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
   const [showHotelReg, setShowHotelReg] = useState(false);
   const [rooms, setRooms] = useState([]);
   const [hotels, setHotels] = useState([]);
@@ -42,6 +43,7 @@ export const AppProvider = ({ children }) => {
         setIsOwner(data.role === "hotelOwner");
         setIsAdmin(data.role === "admin");
         setSearchedCities(data.recentSearchedCities);
+        setIsUserDataLoaded(true);
       } else {
         // Retry Fetching User Details after 5 seconds
         // Useful when user creates account using email & password
@@ -51,6 +53,7 @@ export const AppProvider = ({ children }) => {
       }
     } catch (error) {
       toast.error(error.message);
+      setIsUserDataLoaded(true);
     }
   };
 
@@ -95,9 +98,15 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
+useEffect(() => {
     if (user) {
+      setIsUserDataLoaded(false); 
       fetchUser();
+    } else {
+      setIsOwner(false);
+      setIsAdmin(false);
+      setUserRole("user");
+      setIsUserDataLoaded(true);
     }
   }, [user]);
 
@@ -123,6 +132,8 @@ export const AppProvider = ({ children }) => {
     setIsAdmin,
     userRole,
     setUserRole,
+    isUserDataLoaded,
+    setIsUserDataLoaded,
     axios,
     showHotelReg,
     setShowHotelReg,

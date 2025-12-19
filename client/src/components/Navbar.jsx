@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { assets } from "../assets/assets";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { useClerk, UserButton } from "@clerk/clerk-react";
+import { useUser, useClerk, UserButton } from "@clerk/clerk-react";
 import { useAppContext } from "../context/AppContext";
 
 // Animated Snowflake with glow effect
@@ -74,6 +74,7 @@ const Navbar = () => {
 
   const { openSignIn } = useClerk();
   const { user, setShowHotelReg, isOwner, isAdmin, navigate } = useAppContext();
+  const { user: clerkUser, isLoaded } = useUser();
 
   // Handle search
   const handleSearch = (e) => {
@@ -167,7 +168,7 @@ const Navbar = () => {
             key={i}
             className="snowflake text-2xl"
             style={{
-              left: `${i * 12 + 5}%`,
+              left: `${i * 13 + 5}%`,
               animationDuration: `${8 + i * 2}s`,
               animationDelay: `${i * 0.5}s`,
               fontSize: `${10 + i * 2}px`,
@@ -319,20 +320,30 @@ const Navbar = () => {
 
         {/* Right Section - Desktop */}
         <div className="hidden md:flex items-center gap-3 relative z-10">
-          {user ? (
-            // Đã đổi w-10 h-10 -> w-14 h-14
-            <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent p-0.5 w-10 h-10 flex items-center justify-center overflow-hidden">
-              <UserButton
-                // Thêm dòng này để ảnh bên trong to full khung
-                appearance={{
-                  elements: {
-                    userButtonAvatarBox: "!w-12 !h-12", 
-                    userButtonImage: "!w-full !h-full",
-                    userButtonTrigger: "!p-0 !border-none !shadow-none focus:!shadow-none",
-                  }
-                }}
-              />
-            </div>
+          {isLoaded && clerkUser ?  (
+            <>
+              {/* Clerk UserButton (Avatar) */}
+              <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent p-0.5 w-10 h-10 flex items-center justify-center overflow-hidden">
+                <UserButton
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: "!w-12 !h-12",
+                      userButtonImage: "!w-full !h-full",
+                      userButtonTrigger:
+                        "!p-0 !border-none !shadow-none focus:!shadow-none",
+                    },
+                  }}
+                />
+              </div>
+              
+              {/* User Info (Name) */}
+              <div className="flex flex-col items-start">
+                <p className="text-white font-semibold text-sm drop-shadow-md">
+                  {clerkUser.fullName || `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}` || clerkUser.username}
+                </p>
+                <p className="text-yellow-200 text-xs">Welcome back! 🎄</p>
+              </div>
+            </>
           ) : (
             <button
               onClick={openSignIn}
@@ -346,20 +357,29 @@ const Navbar = () => {
 
         {/* Mobile Menu Button */}
         <div className="flex items-center gap-3 md:hidden relative z-10">
-          {user && (
-            // Đã đổi w-10 h-10 -> w-14 h-14
-            <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent p-0.5 w-10 h-10 flex items-center justify-center overflow-hidden">
-              <UserButton
-                // Thêm dòng này để ảnh bên trong to full khung
-                appearance={{
-                  elements: {
-                    userButtonAvatarBox: "!w-12 !h-12", 
-                    userButtonImage: "!w-full !h-full",
-                    userButtonTrigger: "!p-0 !border-none !shadow-none focus:!shadow-none",
-                  }
-                }}
-              />
-            </div>
+          {isLoaded && clerkUser && (
+            <>
+              {/* Clerk UserButton (Avatar) */}
+              <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent p-0.5 w-10 h-10 flex items-center justify-center overflow-hidden">
+                <UserButton
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: "!w-12 !h-12",
+                      userButtonImage: "!w-full !h-full",
+                      userButtonTrigger:
+                        "!p-0 !border-none !shadow-none focus:!shadow-none",
+                    },
+                  }}
+                />
+              </div>
+              
+              {/* User Info (Name) */}
+              <div className="flex flex-col items-start">
+                <p className="text-white font-semibold text-xs drop-shadow-md">
+                  {clerkUser.fullName || `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`}
+                </p>
+              </div>
+            </>
           )}
           <img
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -432,16 +452,40 @@ const Navbar = () => {
         {/* User Actions - Logged In */}
         {user && (
           <>
+            {/* Hiển thị thông tin người dùng với Clerk */}
+            {isLoaded && clerkUser && (
+              <div className="flex flex-col items-center mb-6 p-4">
+                {/* Avatar */}
+                <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-red-800 p-0.5 mb-2">
+                  <img
+                    src={clerkUser.imageUrl}
+                    alt="Profile"
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                </div>
+
+                {/* Tên người dùng */}
+                <p className="text-white font-bold text-xl">
+                  {clerkUser.fullName ||
+                    `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}` ||
+                    clerkUser.username ||
+                    clerkUser.primaryEmailAddress?.emailAddress}
+                </p>
+
+                <p className="text-yellow-200 text-sm">Welcome back! 🎄</p>
+              </div>
+            )}
+
             <NavLink
               to="/my-bookings"
               onClick={() => setIsMenuOpen(false)}
-              className="text-2xl hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]"
+              className="text-2xl hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] mt-2"
             >
               My Bookings 🎁
             </NavLink>
 
             <button
-              className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 px-6 py-2 text-lg font-bold rounded shadow-lg hover:scale-105 transition-all mt-4"
+              className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 px-6 py-2 text-lg font-bold rounded shadow-lg hover:scale-105 transition-all mt-6"
               onClick={() => {
                 setIsMenuOpen(false);
                 if (isAdmin) navigate("/admin");
@@ -456,19 +500,6 @@ const Navbar = () => {
                 : "🎁 List Your Hotel"}
             </button>
           </>
-        )}
-
-        {/* Guest Actions - Not Logged In */}
-        {!user && (
-          <button
-            onClick={() => {
-              setIsMenuOpen(false);
-              openSignIn();
-            }}
-            className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 px-8 py-3 rounded-full shadow-lg font-bold text-xl hover:scale-105 transition-all mt-4"
-          >
-            🎅 Login
-          </button>
         )}
       </div>
     </>
