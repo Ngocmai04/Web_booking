@@ -4,7 +4,8 @@ import {
   createRating, 
   updateRating, 
   deleteRating,
-  getAverageRatings 
+  getAverageRatings,
+  getRandomRatings
 } from '../controllers/ratingController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -12,6 +13,7 @@ const ratingRouter = express.Router();
 
 // Public routes - Không cần authentication
 ratingRouter.get('/', getRating);
+ratingRouter.get('/testimonials/random', getRandomRatings);
 ratingRouter.get('/average', getAverageRatings);
 
 // Protected routes - Cần Clerk authentication

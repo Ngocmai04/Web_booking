@@ -210,6 +210,86 @@ export const deleteRating = async (req, res) => {
   }
 };
 
+// Get random 3 ratings for testimonials
+export const getRandomRatings = async (req, res) => {
+  try {
+    // First check if there are any ratings at all
+    const totalRatings = await Rating.countDocuments();
+    console.log('Total ratings in DB:', totalRatings);
+
+    if (totalRatings === 0) {
+      return res.status(200).json({
+        success: true,
+        testimonials: [],
+        message: 'No ratings available yet'
+      });
+    }
+
+    // Get up to 3 random ratings
+    const sampleSize = Math.min(3, totalRatings);
+    
+    const ratings = await Rating.aggregate([
+      {
+        $sample: { size: sampleSize }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'userInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'hotels',
+          localField: 'hotel',
+          foreignField: '_id',
+          as: 'hotelInfo'
+        }
+      },
+      {
+        $unwind: {
+          path: '$userInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $unwind: {
+          path: '$hotelInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          comment: 1,
+          'ratings.overall': 1,
+          'userInfo.username': 1,
+          'userInfo.image': 1,
+          'userInfo.email': 1,
+          'hotelInfo.name': 1,
+          'hotelInfo.city': 1,
+          createdAt: 1
+        }
+      }
+    ]);
+
+    console.log('Found ratings:', ratings.length);
+
+    res.status(200).json({
+      success: true,
+      testimonials: ratings,
+    });
+  } catch (error) {
+    console.error('Error in getRandomRatings:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // Get average ratings for a hotel
 export const getAverageRatings = async (req, res) => {
   try {
