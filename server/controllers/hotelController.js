@@ -5,10 +5,23 @@ import User from "../models/User.js";
 // POST /api/hotels
 export const registerHotel = async (req, res) => {
   try {
-    const { name, address, contact, city } = req.body;
+    const { name, address, contact, city, latitude, longitude } = req.body;
     const owner = req.user._id;
 
-    await Hotel.create({ name, address, contact, city, owner });
+    const lat =
+      latitude === null || latitude === undefined ? null : Number(latitude);
+    const lng =
+      longitude === null || longitude === undefined ? null : Number(longitude);
+
+    await Hotel.create({
+      name,
+      address,
+      contact,
+      city,
+      owner,
+      latitude: Number.isFinite(lat) ? lat : null,
+      longitude: Number.isFinite(lng) ? lng : null,
+    });
 
     // Update User Role if needed
     if (req.user.role !== "hotelOwner") {
@@ -21,12 +34,15 @@ export const registerHotel = async (req, res) => {
   }
 };
 
-// API to fetch all hotels (optional city filter)
+// API to fetch all hotels (optional city filter) - Chỉ hiện khách sạn đã duyệt
 // GET /api/hotels
 export const getHotels = async (req, res) => {
   try {
     const { city } = req.query;
-    const filter = city ? { city: new RegExp(city, "i") } : {};
+    const filter = { isApproved: true, isActive: true };
+    if (city) {
+      filter.city = new RegExp(city, "i");
+    }
     const hotels = await Hotel.find(filter).sort({ createdAt: -1 });
     res.json({ success: true, hotels });
   } catch (error) {
@@ -51,7 +67,7 @@ export const getOwnerHotels = async (req, res) => {
 export const updateHotel = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, address, contact, city } = req.body;
+    const { name, address, contact, city, latitude, longitude } = req.body;
     const owner = req.auth.userId;
 
     // Check if hotel exists and belongs to the owner
@@ -61,17 +77,36 @@ export const updateHotel = async (req, res) => {
     }
 
     if (hotel.owner.toString() !== owner) {
-      return res.json({ success: false, message: "Unauthorized to update this hotel" });
+      return res.json({
+        success: false,
+        message: "Unauthorized to update this hotel",
+      });
     }
+
+    const lat =
+      latitude === null || latitude === undefined ? null : Number(latitude);
+    const lng =
+      longitude === null || longitude === undefined ? null : Number(longitude);
 
     // Update hotel
     const updatedHotel = await Hotel.findByIdAndUpdate(
       id,
-      { name, address, contact, city },
+      {
+        name,
+        address,
+        contact,
+        city,
+        latitude: Number.isFinite(lat) ? lat : null,
+        longitude: Number.isFinite(lng) ? lng : null,
+      },
       { new: true }
     );
 
-    res.json({ success: true, message: "Hotel Updated Successfully", hotel: updatedHotel });
+    res.json({
+      success: true,
+      message: "Hotel Updated Successfully",
+      hotel: updatedHotel,
+    });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
@@ -91,7 +126,10 @@ export const deleteHotel = async (req, res) => {
     }
 
     if (hotel.owner.toString() !== owner) {
-      return res.json({ success: false, message: "Unauthorized to delete this hotel" });
+      return res.json({
+        success: false,
+        message: "Unauthorized to delete this hotel",
+      });
     }
 
     // Delete hotel

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Hotel from "../models/Hotel.js";
 import Room from "../models/Room.js";
 import { v2 as cloudinary } from "cloudinary";
@@ -46,17 +47,23 @@ export const getRooms = async (req, res) => {
       filters.hotel = hotelId;
     }
 
-    const rooms = await Room.find(filters)
-      .populate({
-        path: 'hotel',
-        populate: {
-          path: 'owner',
-          select: 'image',
-        },
-      }).sort({ createdAt: -1 });
+    // Lấy thô, lọc room có hotel id hợp lệ để tránh CastError
+    const rawRooms = await Room.find(filters).sort({ createdAt: -1 }).lean();
+    const validRooms = rawRooms.filter((room) => mongoose.Types.ObjectId.isValid(room.hotel));
+
+    const rooms = await Room.populate(validRooms, {
+      path: "hotel",
+      populate: {
+        path: "owner",
+        select: "image",
+      },
+      options: { strictPopulate: false },
+    });
+
     res.json({ success: true, rooms });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    console.error("getRooms error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

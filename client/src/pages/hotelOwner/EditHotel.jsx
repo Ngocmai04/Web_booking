@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import Title from '../../components/Title'
 import toast from 'react-hot-toast'
 import { useAppContext } from '../../context/AppContext'
+import OSMAddressAutocomplete from '../../components/hotelOwner/OSMAddressAutocomplete'
 
 const EditHotel = () => {
 
@@ -15,7 +16,9 @@ const EditHotel = () => {
         name: '',
         address: '',
         contact: '',
-        city: ''
+        city: '',
+        latitude: null,
+        longitude: null,
     })
 
     // Find the hotel to edit
@@ -26,7 +29,9 @@ const EditHotel = () => {
                 name: hotel.name,
                 address: hotel.address,
                 contact: hotel.contact,
-                city: hotel.city
+                city: hotel.city,
+                latitude: Number.isFinite(hotel.latitude) ? hotel.latitude : null,
+                longitude: Number.isFinite(hotel.longitude) ? hotel.longitude : null,
             })
         } else if (ownerHotels.length === 0) {
             fetchOwnerHotels();
@@ -36,13 +41,19 @@ const EditHotel = () => {
     const onSubmitHandler = async (e) => {
         e.preventDefault()
         // Check if all inputs are filled
-        if (!inputs.name || !inputs.address || !inputs.contact || !inputs.city) {
+        const hasCoords = Number.isFinite(inputs.latitude) && Number.isFinite(inputs.longitude)
+        if (!inputs.name || !inputs.address || !inputs.contact || !inputs.city || !hasCoords) {
             toast.error("Please fill in all the details")
             return;
         }
         setLoading(true);
         try {
-            const { data } = await axios.put(`/api/hotels/${id}`, inputs, { headers: { Authorization: `Bearer ${await getToken()}` } })
+            const payload = {
+                ...inputs,
+                latitude: inputs.latitude,
+                longitude: inputs.longitude,
+            }
+            const { data } = await axios.put(`/api/hotels/${id}`, payload, { headers: { Authorization: `Bearer ${await getToken()}` } })
 
             if (data.success) {
                 toast.success(data.message)
@@ -70,12 +81,12 @@ const EditHotel = () => {
 
             <div className='w-full max-w-2xl'>
                 <div className='mt-6'>
-                    <p className='text-gray-800 font-medium'>Hotel Name</p>
-                    <input 
-                        type="text" 
+                    <p className='text-emerald-800 font-medium'>Hotel Name</p>
+                    <input
+                        type="text"
                         name='name'
-                        placeholder='Enter hotel name' 
-                        className='border border-gray-300 mt-2 rounded p-3 w-full' 
+                        placeholder='Enter hotel name'
+                        className='border border-gray-300 mt-2 rounded p-3 w-full'
                         value={inputs.name}
                         onChange={handleChange}
                     />
@@ -83,49 +94,59 @@ const EditHotel = () => {
 
                 <div className='mt-4'>
                     <p className='text-gray-800 font-medium'>Address</p>
-                    <input 
-                        type="text" 
-                        name='address'
-                        placeholder='Enter hotel address' 
-                        className='border border-gray-300 mt-2 rounded p-3 w-full' 
+                    <OSMAddressAutocomplete
                         value={inputs.address}
-                        onChange={handleChange}
+                        onChange={(next) => setInputs(prev => ({ ...prev, address: next, latitude: null, longitude: null }))}
+                        onSelect={(picked) => setInputs(prev => ({
+                            ...prev,
+                            address: picked.displayName,
+                            city: prev.city || picked.city,
+                            latitude: picked.latitude,
+                            longitude: picked.longitude,
+                        }))}
+                        placeholder='Search hotel address (OpenStreetMap)'
+                        disabled={loading}
                     />
+                    <p className='text-xs text-gray-500 mt-2'>
+                        {Number.isFinite(inputs.latitude) && Number.isFinite(inputs.longitude)
+                            ? `Selected coordinates: ${inputs.latitude}, ${inputs.longitude}`
+                            : 'Pick an address from suggestions to save coordinates.'}
+                    </p>
                 </div>
 
                 <div className='mt-4'>
-                    <p className='text-gray-800 font-medium'>City</p>
-                    <input 
-                        type="text" 
+                    <p className='text-emerald-800 font-medium'>City</p>
+                    <input
+                        type="text"
                         name='city'
-                        placeholder='Enter city' 
-                        className='border border-gray-300 mt-2 rounded p-3 w-full' 
+                        placeholder='Enter city'
+                        className='border border-gray-300 mt-2 rounded p-3 w-full'
                         value={inputs.city}
                         onChange={handleChange}
                     />
                 </div>
 
                 <div className='mt-4'>
-                    <p className='text-gray-800 font-medium'>Contact</p>
-                    <input 
-                        type="text" 
+                    <p className='text-emerald-800 font-medium'>Contact</p>
+                    <input
+                        type="text"
                         name='contact'
-                        placeholder='Enter contact number or email' 
-                        className='border border-gray-300 mt-2 rounded p-3 w-full' 
+                        placeholder='Enter contact number or email'
+                        className='border border-gray-300 mt-2 rounded p-3 w-full'
                         value={inputs.contact}
                         onChange={handleChange}
                     />
                 </div>
 
                 <div className='flex gap-4 mt-8'>
-                    <button 
+                    <button
                         type='submit'
                         className='bg-blue-600 text-white px-8 py-3 rounded cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed font-medium hover:bg-blue-700 transition'
                         disabled={loading}
                     >
                         {loading ? "Updating..." : "Update Hotel"}
                     </button>
-                    <button 
+                    <button
                         type='button'
                         onClick={() => navigate('/owner/hotels')}
                         className='bg-gray-600 text-white px-8 py-3 rounded cursor-pointer font-medium hover:bg-gray-700 transition'
