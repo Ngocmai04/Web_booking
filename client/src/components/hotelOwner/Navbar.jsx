@@ -258,7 +258,7 @@ const OwnerNavbar = () => {
               <div className="flex items-center space-x-3 p-2 rounded-xl hover:bg-white/10 transition-all cursor-pointer">
                 <div className="relative">
                   <img 
-                    src={user?.imageUrl || 'https://via.placeholder.com/40'} 
+                    src={user?.imageUrl || 'https://placehold.co/40'} 
                     alt="Profile" 
                     className="w-10 h-10 rounded-full border-2 border-yellow-400 object-cover shadow-lg"
                   />
@@ -336,7 +336,7 @@ const OwnerNavbar = () => {
         {/* User Info */}
         <div className="flex flex-col items-center gap-2 mb-4">
           <img 
-            src={user?.imageUrl || 'https://via.placeholder.com/80'} 
+            src={user?.imageUrl || 'https://placehold.co/80'} 
             alt="Profile" 
             className="w-20 h-20 rounded-full border-4 border-yellow-400 object-cover shadow-2xl"
           />
