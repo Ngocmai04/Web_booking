@@ -25,7 +25,7 @@ const Footer = () => {
           <img
             src={assets.logo}
             alt="logo"
-            className="mb-4 h-9 text-white"
+            className="mb-4 h-16 text-white"
           />
           <p className="text-sm opacity-90">
             Discover magical places to stay this holiday season — from cozy
