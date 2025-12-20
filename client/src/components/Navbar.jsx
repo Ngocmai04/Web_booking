@@ -39,15 +39,14 @@ const ChristmasLights = () => (
       {[...Array(42)].map((_, i) => (
         <div
           key={i}
-          className={`w-2 h-2 rounded-full mx-4 ${
-            i % 4 === 0
-              ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]"
-              : i % 4 === 1
+          className={`w-2 h-2 rounded-full mx-4 ${i % 4 === 0
+            ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]"
+            : i % 4 === 1
               ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]"
               : i % 4 === 2
-              ? "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]"
-              : "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"
-          }`}
+                ? "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]"
+                : "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"
+            }`}
           style={{
             animation: `twinkle ${1 + (i % 3) * 0.5}s infinite ${i * 0.2}s`,
           }}
@@ -151,13 +150,12 @@ const Navbar = () => {
 
       <nav
         className={`fixed top-0 left-0 w-full flex items-center justify-between px-4 md:px-16 lg:px-24 xl:px-32 transition-all duration-500 z-50 overflow-hidden
-        ${
-          isScrolled
+        ${isScrolled
             ? "bg-gradient-to-r from-red-700 via-green-700 to-red-700 shadow-2xl backdrop-blur-lg py-3 md:py-4 border-b-2 border-yellow-400"
             : isHomePage
-            ? "py-4 md:py-6 bg-gradient-to-b from-red-600/90 via-green-600/60 to-transparent"
-            : "bg-gradient-to-r from-red-700 via-green-700 to-red-700 py-3 md:py-4"
-        }`}
+              ? "py-4 md:py-6 bg-gradient-to-b from-red-600/90 via-green-600/60 to-transparent"
+              : "bg-gradient-to-r from-red-700 via-green-700 to-red-700 py-3 md:py-4"
+          }`}
       >
         {/* Christmas Lights Decoration */}
         {isHomePage && !isScrolled && <ChristmasLights />}
@@ -186,11 +184,10 @@ const Navbar = () => {
           <img
             src={assets.logo}
             alt="logo"
-            className={`h-10 transition-all duration-300 ${
-              isScrolled
-                ? "filter brightness-100 drop-shadow-[0_0_15px_rgba(255,215,0,1)]"
-                : "drop-shadow-[0_0_12px_white]"
-            }`}
+            className={`h-20 transition-all duration-300 ${isScrolled
+              ? "filter brightness-100 drop-shadow-[0_0_15px_rgba(255,215,0,1)]"
+              : "drop-shadow-[0_0_12px_white]"
+              }`}
           />
           {!isScrolled && <Snowflake />}
           {isScrolled && <ChristmasBell />}
@@ -203,11 +200,10 @@ const Navbar = () => {
               key={index}
               to={navLink.path}
               className={`group flex flex-col gap-0.5 text-lg font-bold tracking-wide transition-all relative
-              ${
-                isScrolled
+              ${isScrolled
                   ? "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
                   : "text-white drop-shadow-[0_0_12px_rgba(255,255,255,1)]"
-              }`}
+                }`}
               onClick={() => scrollTo(0, 0)}
             >
               <span className="relative">
@@ -221,11 +217,10 @@ const Navbar = () => {
               </span>
               <div
                 className={`h-1 w-0 group-hover:w-full transition-all duration-300 rounded-full
-                ${
-                  isScrolled
+                ${isScrolled
                     ? "bg-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.8)]"
                     : "bg-white shadow-[0_0_8px_white]"
-                }
+                  }
               `}
               ></div>
             </NavLink>
@@ -235,11 +230,10 @@ const Navbar = () => {
           <div className="relative group">
             <div
               className={`flex items-center gap-2 px-3 py-2 rounded-full border-2 transition-all duration-300
-              ${
-                isScrolled
+              ${isScrolled
                   ? "bg-white/90 border-red-300 shadow-lg"
                   : "bg-white/20 border-white/50 backdrop-blur-md"
-              }`}
+                }`}
             >
               <svg
                 className={`w-5 h-5 transition-colors
@@ -263,10 +257,9 @@ const Navbar = () => {
                 onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
                 placeholder="Search hotels..."
                 className={`w-40 lg:w-48 bg-transparent outline-none font-medium transition-all
-                  ${
-                    isScrolled
-                      ? "text-gray-700 placeholder-gray-400"
-                      : "text-white placeholder-white/70"
+                  ${isScrolled
+                    ? "text-gray-700 placeholder-gray-400"
+                    : "text-white placeholder-white/70"
                   }`}
               />
               <button
@@ -274,10 +267,9 @@ const Navbar = () => {
                 onClick={handleSearch}
                 disabled={!searchQuery.trim()}
                 className={`text-sm font-bold px-3 py-1 rounded-full transition-all
-                  ${
-                    isScrolled
-                      ? "bg-gradient-to-r from-red-500 to-green-500 text-white hover:shadow-md"
-                      : "bg-white/30 text-white hover:bg-white/40"
+                  ${isScrolled
+                    ? "bg-gradient-to-r from-red-500 to-green-500 text-white hover:shadow-md"
+                    : "bg-white/30 text-white hover:bg-white/40"
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 🎄
@@ -293,25 +285,24 @@ const Navbar = () => {
           {user && (
             <button
               className={`px-5 py-2 text-sm font-bold rounded-full tracking-wide transition-all backdrop-blur-md shadow-lg relative overflow-hidden group
-              ${
-                isScrolled
+              ${isScrolled
                   ? "text-red-700 bg-gradient-to-r from-yellow-300 to-yellow-400 border-2 border-yellow-500 hover:from-yellow-400 hover:to-yellow-500"
                   : "text-white bg-gradient-to-r from-red-500/80 to-green-500/80 border-2 border-white/70 hover:from-red-600/90 hover:to-green-600/90"
-              }`}
+                }`}
               onClick={() =>
                 isAdmin
                   ? navigate("/admin")
                   : isOwner
-                  ? navigate("/owner")
-                  : setShowHotelReg(true)
+                    ? navigate("/owner")
+                    : setShowHotelReg(true)
               }
             >
               <span className="relative z-10">
                 {isAdmin
                   ? "👑 Admin Panel"
                   : isOwner
-                  ? "🎄 Dashboard"
-                  : "🎁 List Your Hotel"}
+                    ? "🎄 Dashboard"
+                    : "🎁 List Your Hotel"}
               </span>
               <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
             </button>
@@ -320,7 +311,7 @@ const Navbar = () => {
 
         {/* Right Section - Desktop */}
         <div className="hidden md:flex items-center gap-3 relative z-10">
-          {isLoaded && clerkUser ?  (
+          {isLoaded && clerkUser ? (
             <>
               {/* Clerk UserButton (Avatar) */}
               <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent p-0.5 w-10 h-10 flex items-center justify-center overflow-hidden">
@@ -335,7 +326,7 @@ const Navbar = () => {
                   }}
                 />
               </div>
-              
+
               {/* User Info (Name) */}
               <div className="flex flex-col items-start">
                 <p className="text-white font-semibold text-sm drop-shadow-md">
@@ -372,7 +363,7 @@ const Navbar = () => {
                   }}
                 />
               </div>
-              
+
               {/* User Info (Name) */}
               <div className="flex flex-col items-start">
                 <p className="text-white font-semibold text-xs drop-shadow-md">
@@ -385,18 +376,16 @@ const Navbar = () => {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             src={assets.menuIcon}
             alt="menu"
-            className={`${
-              isScrolled ? "invert-0" : "invert"
-            } h-14 w-14 cursor-pointer hover:scale-110 transition-transform`}
+            className={`${isScrolled ? "invert-0" : "invert"
+              } h-14 w-14 cursor-pointer hover:scale-110 transition-transform`}
           />
         </div>
       </nav>
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`fixed top-0 left-0 z-50 w-full h-screen bg-gradient-to-br from-red-600/95 via-green-600/95 to-red-600/95 backdrop-blur-xl flex flex-col items-center justify-center gap-6 font-bold text-white transition-all duration-500 md:hidden ${
-          isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 z-50 w-full h-screen bg-gradient-to-br from-red-600/95 via-green-600/95 to-red-600/95 backdrop-blur-xl flex flex-col items-center justify-center gap-6 font-bold text-white transition-all duration-500 md:hidden ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Close Button */}
         <button
@@ -440,8 +429,7 @@ const Navbar = () => {
               scrollTo(0, 0);
             }}
             className={({ isActive }) =>
-              `text-2xl hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] ${
-                isActive ? "text-yellow-300" : "text-white"
+              `text-2xl hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] ${isActive ? "text-yellow-300" : "text-white"
               }`
             }
           >
@@ -496,8 +484,8 @@ const Navbar = () => {
               {isAdmin
                 ? "👑 Admin Panel"
                 : isOwner
-                ? "🎄 Dashboard"
-                : "🎁 List Your Hotel"}
+                  ? "🎄 Dashboard"
+                  : "🎁 List Your Hotel"}
             </button>
           </>
         )}

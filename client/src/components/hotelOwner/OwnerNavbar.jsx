@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
-  faBell, faGift, 
+import {
+  faBell, faGift,
   faHome, faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons'
 import { assets } from '../../assets/assets'
@@ -44,15 +44,14 @@ const ChristmasLights = () => (
       {[...Array(50)].map((_, i) => (
         <div
           key={i}
-          className={`w-2 h-2 rounded-full mx-3 ${
-            i % 4 === 0
-              ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]"
-              : i % 4 === 1
+          className={`w-2 h-2 rounded-full mx-3 ${i % 4 === 0
+            ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]"
+            : i % 4 === 1
               ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]"
               : i % 4 === 2
-              ? "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]"
-              : "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"
-          }`}
+                ? "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]"
+                : "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"
+            }`}
           style={{
             animation: `twinkle ${1 + (i % 3) * 0.5}s infinite ${i * 0.2}s`,
           }}
@@ -66,8 +65,8 @@ const OwnerNavbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  
-  const { logout} = useAppContext()
+
+  const { logout } = useAppContext()
   const { user: clerkUser, isLoaded } = useUser()
   const { signOut } = useClerk()
 
@@ -148,14 +147,14 @@ const OwnerNavbar = () => {
 
       <nav className={`
         sticky top-0 z-50 transition-all duration-500 
-        ${isScrolled 
-          ? 'bg-gradient-to-r from-red-700/95 via-green-700/95 to-red-700/95 backdrop-blur-lg shadow-2xl py-3 border-b-2 border-yellow-400' 
+        ${isScrolled
+          ? 'bg-gradient-to-r from-red-700/95 via-green-700/95 to-red-700/95 backdrop-blur-lg shadow-2xl py-3 border-b-2 border-yellow-400'
           : 'bg-gradient-to-r from-red-800 via-green-800 to-red-800 py-4'
         }
       `}>
         {/* Christmas Lights */}
         <ChristmasLights />
-        
+
         {/* Falling Snowflakes */}
         {[...Array(6)].map((_, i) => (
           <div
@@ -171,24 +170,23 @@ const OwnerNavbar = () => {
             ❄
           </div>
         ))}
-        
-        <div className="container mx-auto px-4 md:px-6 flex items-center justify-between relative z-10">
+
+        <div className="container mx-auto px-2 md:px-6 flex items-center justify-between relative z-10">
           {/* Left Section - Logo & Home Button */}
           <div className="flex items-center gap-4">
             <Link to="/owner" className="group animate-float">
-              <div className="flex items-center space-x-6"> 
+              <div className="flex items-center space-x-6">
                 <div className="relative translate-y-2">
                   <img
-                        src={assets.logo}
-                        alt="logo"
-                        className={`h-10 transition-all duration-300 ${
-                          isScrolled
-                            ? "filter brightness-100 drop-shadow-[0_0_15px_rgba(255,215,0,1)]"
-                            : "drop-shadow-[0_0_12px_white]"
-                        }`}
-                      />
-                      {!isScrolled && <Snowflake />}
-                      {isScrolled && <ChristmasBell />}
+                    src={assets.logo}
+                    alt="logo"
+                    className={`h-20 transition-all duration-300 ${isScrolled
+                      ? "filter brightness-100 drop-shadow-[0_0_15px_rgba(255,215,0,1)]"
+                      : "drop-shadow-[0_0_12px_white]"
+                      }`}
+                  />
+                  {!isScrolled && <Snowflake />}
+                  {isScrolled && <ChristmasBell />}
                   <div className="absolute -top-0.5 -right-4 text-yellow-300 animate-swing text-lg">
                     🎄
                   </div>
@@ -223,8 +221,8 @@ const OwnerNavbar = () => {
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="relative p-2 rounded-full hover:bg-white/10 transition-all group"
               >
-                <FontAwesomeIcon 
-                  icon={faBell} 
+                <FontAwesomeIcon
+                  icon={faBell}
                   className="text-white text-lg md:text-xl group-hover:text-yellow-300 transition-colors animate-swing"
                 />
                 {unreadCount > 0 && (
@@ -257,8 +255,8 @@ const OwnerNavbar = () => {
                       >
                         <div className="flex items-start">
                           <div className="mr-3 mt-1">
-                            <FontAwesomeIcon 
-                              icon={faGift} 
+                            <FontAwesomeIcon
+                              icon={faGift}
                               className={`text-sm ${notif.read ? 'text-green-400' : 'text-yellow-400 animate-pulse'}`}
                             />
                           </div>
@@ -287,18 +285,18 @@ const OwnerNavbar = () => {
               {isLoaded && clerkUser && (
                 <>
                   <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent p-0.5 w-10 h-10 flex items-center justify-center overflow-hidden">
-                                  <UserButton
-                                    appearance={{
-                                      elements: {
-                                        userButtonAvatarBox: "!w-12 !h-12",
-                                        userButtonImage: "!w-full !h-full",
-                                        userButtonTrigger:
-                                          "!p-0 !border-none !shadow-none focus:!shadow-none",
-                                      },
-                                    }}
-                                  />
+                    <UserButton
+                      appearance={{
+                        elements: {
+                          userButtonAvatarBox: "!w-12 !h-12",
+                          userButtonImage: "!w-full !h-full",
+                          userButtonTrigger:
+                            "!p-0 !border-none !shadow-none focus:!shadow-none",
+                        },
+                      }}
+                    />
                   </div>
-                  
+
                   {/* User Info (Name) */}
                   <div className="text-left">
                     <p className="text-white font-semibold text-sm drop-shadow-md">
@@ -311,7 +309,7 @@ const OwnerNavbar = () => {
             </div>
 
             {/* Mobile Menu Button */}
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden text-white hover:text-yellow-300 transition-colors p-2"
             >
@@ -325,9 +323,8 @@ const OwnerNavbar = () => {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`fixed top-0 left-0 z-50 w-full h-screen bg-gradient-to-br from-red-600/95 via-green-600/95 to-red-600/95 backdrop-blur-xl flex flex-col items-center justify-center gap-4 font-bold text-white transition-all duration-500 md:hidden ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 z-50 w-full h-screen bg-gradient-to-br from-red-600/95 via-green-600/95 to-red-600/95 backdrop-blur-xl flex flex-col items-center justify-center gap-4 font-bold text-white transition-all duration-500 md:hidden ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Close Button */}
         <button
@@ -353,7 +350,7 @@ const OwnerNavbar = () => {
                 }}
               />
             </div>
-            
+
             {/* Name */}
             <p className="text-xl text-white font-bold drop-shadow-lg">
               {clerkUser.fullName || `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}` || clerkUser.username || 'Hotel Owner'}
