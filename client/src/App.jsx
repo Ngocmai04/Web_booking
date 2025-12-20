@@ -18,6 +18,7 @@ import MyBookings from './pages/MyBookings'
 import Loader from './components/Loader'
 import SnowFalling from './components/SnowFalling'
 import ReindeerCursor from './components/ReindeerCursor'
+import FlyingSanta from './components/FlyingSanta'
 
 // Admin imports
 import AdminLayout from "./pages/admin/Layout";
@@ -49,7 +50,7 @@ const App = () => {
       className="font-inter min-h-screen relative overflow-x-hidden"
       style={{
         // 🎄 Warm Christmas Background
-        background: !isOwnerPath
+        background: !isOwnerPath && !isAdminPath
           ? "linear-gradient(180deg, #FEF3E2 0%, #FFE5CC 50%, #FFF8F0 100%)"
           : "white",
         transition: "0.3s ease",
@@ -58,8 +59,11 @@ const App = () => {
       <Toaster />
 
       {/* 🎄 Warm Christmas Decorations */}
-      {!isOwnerPath && (
+      {!isOwnerPath && !isAdminPath && (
         <>
+          {/* 🎅 Flying Santa Effect - Thêm ở đây */}
+          <FlyingSanta />
+
           {/* 🎄 Christmas Lights - Full Width */}
           <div className="fixed top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 via-green-400 via-yellow-300 via-red-400 to-green-400 opacity-70 animate-pulse shadow-lg z-[100]" />
 
@@ -170,7 +174,7 @@ const App = () => {
         </Routes>
       </div>
 
-      {!isOwnerPath && <Footer />}
+      {!isOwnerPath && !isAdminPath && <Footer />}
 
       {/* Snow Fall Animation */}
       <style>{`
