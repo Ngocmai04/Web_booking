@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import Layout from './pages/hotelOwner/Layout'
 import Dashboard from './pages/hotelOwner/Dashboard'
 import ListRoom from './pages/hotelOwner/ListRoom'
+import EditRoom from './pages/hotelOwner/EditRoom'
 import AddHotel from './pages/hotelOwner/AddHotel'
 import EditHotel from './pages/hotelOwner/EditHotel'
 import ListHotel from './pages/hotelOwner/ListHotel'
@@ -160,6 +161,7 @@ const App = () => {
             <Route path="add-hotel" element={<AddHotel />} />
             <Route path="edit-hotel/:id" element={<EditHotel />} />
             <Route path="list-room" element={<ListRoom />} />
+            <Route path="edit-room/:roomId" element={<EditRoom />} />
           </Route>
 
           {/* Admin routes */}

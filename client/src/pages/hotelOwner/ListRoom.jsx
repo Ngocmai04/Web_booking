@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { assets } from "../../assets/assets";
 import toast from "react-hot-toast";
 import { useAppContext } from "../../context/AppContext";
+import { useNavigate } from "react-router-dom";
 import {
   Bed,
   Hotel,
@@ -14,14 +15,19 @@ import {
   Check,
   X,
   RefreshCw,
+  Edit,
+  Trash2,
 } from "lucide-react";
 
 const ListRoom = () => {
+  const navigate = useNavigate();
   const { axios, getToken, user, ownerHotels, fetchOwnerHotels } =
     useAppContext();
   const [rooms, setRooms] = useState([]);
   const [selectedHotelId, setSelectedHotelId] = useState("");
   const [showAddRoomForm, setShowAddRoomForm] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [roomToDelete, setRoomToDelete] = useState(null);
 
   // Add Room form states
   const [images, setImages] = useState({ 1: null, 2: null, 3: null, 4: null });
@@ -59,9 +65,9 @@ const ListRoom = () => {
   // Toggle room availability
   const toggleAvailability = async (roomId) => {
     try {
-      const { data } = await axios.post(
-        "/api/rooms/toggle-availability",
-        { roomId },
+      const { data } = await axios.patch(
+        `/api/rooms/${roomId}/toggle-availability`,
+        {},
         { headers: { Authorization: `Bearer ${await getToken()}` } }
       );
       if (data.success) {
@@ -71,8 +77,42 @@ const ListRoom = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message);
     }
+  };
+
+  // Handle delete room
+  const handleDeleteRoom = async () => {
+    if (!roomToDelete) return;
+
+    try {
+      const { data } = await axios.delete(`/api/rooms/${roomToDelete}`, {
+        headers: { Authorization: `Bearer ${await getToken()}` },
+      });
+
+      if (data.success) {
+        toast.success("🎉 Room deleted successfully!");
+        fetchRooms();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete room");
+    } finally {
+      setShowDeleteModal(false);
+      setRoomToDelete(null);
+    }
+  };
+
+  // Open delete confirmation modal
+  const confirmDelete = (roomId) => {
+    setRoomToDelete(roomId);
+    setShowDeleteModal(true);
+  };
+
+  // Navigate to edit room
+  const handleEditRoom = (roomId) => {
+    navigate(`/owner/edit-room/${roomId}`);
   };
 
   // Add Room form submission
@@ -478,13 +518,17 @@ const ListRoom = () => {
                       Availability
                     </div>
                   </th>
+
+                  <th className="py-4 px-6 font-black text-center text-lg">
+                    Actions
+                  </th>
                 </tr>
               </thead>
 
               <tbody className="text-sm">
                 {rooms.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="py-16 text-center">
+                    <td colSpan="5" className="py-16 text-center">
                       <div className="flex flex-col items-center gap-4">
                         <Bed className="w-20 h-20 text-purple-400 animate-bounce" />
                         <p className="text-gray-500 text-xl font-bold">
@@ -568,6 +612,24 @@ const ListRoom = () => {
                           </span>
                         </label>
                       </td>
+                      <td className="py-4 px-6 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleEditRoom(item._id)}
+                            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
+                            title="Edit Room"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => confirmDelete(item._id)}
+                            className="bg-gradient-to-r from-red-500 to-red-600 text-white p-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
+                            title="Delete Room"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -576,6 +638,43 @@ const ListRoom = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border-4 border-red-400 transform transition-all">
+            <div className="text-center mb-6">
+              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <AlertTriangle className="w-10 h-10 text-red-600" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-800 mb-2">
+                Delete Room?
+              </h3>
+              <p className="text-gray-600 font-semibold">
+                Are you sure you want to delete this room? This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleDeleteRoom}
+                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all shadow-lg"
+              >
+                Yes, Delete
+              </button>
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setRoomToDelete(null);
+                }}
+                className="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-300 transition-all shadow-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
                 .custom-scrollbar::-webkit-scrollbar {

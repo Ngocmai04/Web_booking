@@ -10,6 +10,7 @@ const roomSchema = new Schema(
     amenities: { type: Array, required: true },
     images: [{ type: String }],
     isAvailable: { type: Boolean, default: true },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
