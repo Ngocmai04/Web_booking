@@ -107,9 +107,27 @@ export const createBooking = async (req, res) => {
     // Confirmation URL
     const confirmUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/confirm-booking/${booking._id}/${confirmationToken}`;
 
+    // Get user email - try from DB first, then from Clerk auth
+    const userEmail = req.user.email || req.auth?.user?.primaryEmailAddress?.emailAddress || req.auth?.user?.emailAddresses?.[0]?.emailAddress;
+    
+    console.log('📧 Email check:', { 
+      dbEmail: req.user.email, 
+      clerkEmail: req.auth?.user?.primaryEmailAddress?.emailAddress,
+      finalEmail: userEmail,
+      userId: req.user._id
+    });
+    
+    if (!userEmail) {
+      await Booking.findByIdAndDelete(booking._id);
+      return res.json({ 
+        success: false, 
+        message: "Unable to send confirmation email: no email address found for your account." 
+      });
+    }
+
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
-      to: req.user.email,
+      to: userEmail,
       subject: 'Confirm your booking - Hotel Booking',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
@@ -337,9 +355,19 @@ export const resendConfirmation = async (req, res) => {
 
     const confirmUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/confirm-booking/${booking._id}/${confirmationToken}`;
 
+    // Get user email - try from DB first, then from Clerk auth
+    const userEmail = user.email || req.auth?.user?.primaryEmailAddress?.emailAddress;
+    
+    if (!userEmail) {
+      return res.json({ 
+        success: false, 
+        message: "Unable to send confirmation email: no email address found for your account." 
+      });
+    }
+
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
-      to: user.email,
+      to: userEmail,
       subject: 'Confirm your booking - Hotel Booking',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
