@@ -23,7 +23,7 @@ export const getUserById = async (req, res) => {
     const { id } = req.params;
     const user = await User.findById(id);
     if (!user) {
-      return res.json({ success: false, message: "Không tìm thấy người dùng" });
+      return res.json({ success: false, message: "User not found." });
     }
     res.json({ success: true, user });
   } catch (error) {
@@ -39,14 +39,14 @@ export const toggleUserActive = async (req, res) => {
     const user = await User.findById(id);
 
     if (!user) {
-      return res.json({ success: false, message: "Không tìm thấy người dùng" });
+      return res.json({ success: false, message: "User not found." });
     }
 
     // Không cho phép khóa chính mình
     if (user._id === req.user._id) {
       return res.json({
         success: false,
-        message: "Không thể khóa tài khoản của chính bạn",
+        message: "You cannot lock your own account.",
       });
     }
 
@@ -55,7 +55,7 @@ export const toggleUserActive = async (req, res) => {
 
     res.json({
       success: true,
-      message: user.isActive ? "Đã mở khóa tài khoản" : "Đã khóa tài khoản",
+      message: user.isActive ? "Account unlocked." : "Account locked.",
       user,
     });
   } catch (error) {
@@ -71,26 +71,26 @@ export const changeUserRole = async (req, res) => {
     const { role } = req.body;
 
     if (!["user", "hotelOwner", "admin"].includes(role)) {
-      return res.json({ success: false, message: "Role không hợp lệ" });
+      return res.json({ success: false, message: "Invalid role." });
     }
 
     const user = await User.findById(id);
     if (!user) {
-      return res.json({ success: false, message: "Không tìm thấy người dùng" });
+      return res.json({ success: false, message: "User not found." });
     }
 
     // Không cho phép thay đổi role của chính mình
     if (user._id === req.user._id) {
       return res.json({
         success: false,
-        message: "Không thể thay đổi role của chính bạn",
+        message: "You cannot change your own role.",
       });
     }
 
     user.role = role;
     await user.save();
 
-    res.json({ success: true, message: "Đã thay đổi role", user });
+    res.json({ success: true, message: "Role updated.", user });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
@@ -142,13 +142,13 @@ export const approveHotel = async (req, res) => {
     const hotel = await Hotel.findById(id);
 
     if (!hotel) {
-      return res.json({ success: false, message: "Không tìm thấy khách sạn" });
+      return res.json({ success: false, message: "Hotel not found." });
     }
 
     hotel.isApproved = true;
     await hotel.save();
 
-    res.json({ success: true, message: "Đã duyệt khách sạn", hotel });
+    res.json({ success: true, message: "Hotel approved.", hotel });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
@@ -162,13 +162,13 @@ export const rejectHotel = async (req, res) => {
     const hotel = await Hotel.findById(id);
 
     if (!hotel) {
-      return res.json({ success: false, message: "Không tìm thấy khách sạn" });
+      return res.json({ success: false, message: "Hotel not found." });
     }
 
     // Xóa khách sạn bị từ chối
     await Hotel.findByIdAndDelete(id);
 
-    res.json({ success: true, message: "Đã từ chối và xóa khách sạn" });
+    res.json({ success: true, message: "Hotel rejected and deleted." });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
@@ -183,7 +183,7 @@ export const toggleHotelActive = async (req, res) => {
 
     const hotel = await Hotel.findById(id);
     if (!hotel) {
-      return res.json({ success: false, message: "Không tìm thấy khách sạn" });
+      return res.json({ success: false, message: "Hotel not found." });
     }
 
     hotel.isActive = !hotel.isActive;
@@ -191,7 +191,7 @@ export const toggleHotelActive = async (req, res) => {
 
     res.json({
       success: true,
-      message: hotel.isActive ? "Đã khôi phục khách sạn" : "Đã gỡ khách sạn",
+      message: hotel.isActive ? "Hotel restored." : "Hotel disabled.",
       hotel,
     });
   } catch (error) {
@@ -211,7 +211,7 @@ export const deleteHotelAdmin = async (req, res) => {
     // Xóa khách sạn
     await Hotel.findByIdAndDelete(id);
 
-    res.json({ success: true, message: "Đã xóa khách sạn và tất cả phòng" });
+    res.json({ success: true, message: "Hotel and all rooms deleted." });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
@@ -238,7 +238,7 @@ export const deleteRoomAdmin = async (req, res) => {
   try {
     const { id } = req.params;
     await Room.findByIdAndDelete(id);
-    res.json({ success: true, message: "Đã xóa phòng" });
+    res.json({ success: true, message: "Room deleted." });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
@@ -272,7 +272,7 @@ export const updateBookingStatus = async (req, res) => {
     const { status } = req.body;
 
     if (!["pending", "confirmed", "cancelled"].includes(status)) {
-      return res.json({ success: false, message: "Trạng thái không hợp lệ" });
+      return res.json({ success: false, message: "Invalid status." });
     }
 
     const booking = await Booking.findByIdAndUpdate(
@@ -282,10 +282,10 @@ export const updateBookingStatus = async (req, res) => {
     );
 
     if (!booking) {
-      return res.json({ success: false, message: "Không tìm thấy booking" });
+      return res.json({ success: false, message: "Booking not found." });
     }
 
-    res.json({ success: true, message: "Đã cập nhật trạng thái", booking });
+    res.json({ success: true, message: "Booking status updated.", booking });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }

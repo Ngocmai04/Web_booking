@@ -44,13 +44,13 @@ export const protect = async (req, res, next) => {
       });
     }
 
-    // Kiểm tra tài khoản có bị khóa không
+    // Check if the account is locked
     if (!dbUser.isActive) {
       return res
         .status(403)
         .json({
           success: false,
-          message: "Tài khoản đã bị khóa. Vui lòng liên hệ admin.",
+          message: "Your account has been locked. Please contact an admin.",
         });
     }
 
@@ -68,7 +68,7 @@ export const isAdmin = async (req, res, next) => {
     if (req.user.role !== "admin") {
       return res
         .status(403)
-        .json({ success: false, message: "Chỉ Admin mới có quyền truy cập" });
+        .json({ success: false, message: "Admins only." });
     }
     next();
   } catch (err) {
