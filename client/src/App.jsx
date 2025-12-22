@@ -20,6 +20,7 @@ import Loader from './components/Loader'
 import SnowFalling from './components/SnowFalling'
 import ReindeerCursor from './components/ReindeerCursor'
 import FlyingSanta from './components/FlyingSanta'
+import ConfirmBooking from './pages/ConfirmBooking'
 
 // Admin imports
 import AdminLayout from "./pages/admin/Layout";
@@ -153,6 +154,7 @@ const App = () => {
           <Route path="/rooms/:id" element={<RoomDetails />} />
           <Route path="my-bookings" element={<MyBookings />} />
           <Route path="/loader/:nextUrl" element={<Loader />} />
+          <Route path="/confirm-booking/:bookingId/:token" element={<ConfirmBooking />} />
 
           {/* Owner routes */}
           <Route path="/owner" element={<Layout />}>
