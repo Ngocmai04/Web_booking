@@ -58,10 +58,11 @@ const ChristmasLights = () => (
 
 const Navbar = () => {
   const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "Hotels", path: "/rooms" },
-    { name: "Experience", path: "/experience" },
-    { name: "About", path: "/about" },
+    { name: "Home", path: "/", requireAuth: false },
+    { name: "Hotels", path: "/rooms", requireAuth: false },
+    { name: "Experience", path: "/experience", requireAuth: false },
+    { name: "About", path: "/about", requireAuth: false },
+    { name: "My Bookings", path: "/my-bookings", requireAuth: true }
   ];
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -195,36 +196,39 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-4 lg:gap-8 relative z-10">
-          {navLinks.map((navLink, index) => (
-            <NavLink
-              key={index}
-              to={navLink.path}
-              className={`group flex flex-col gap-0.5 text-lg font-bold tracking-wide transition-all relative
+          {navLinks
+            .filter(navLink => !navLink.requireAuth || user) // Chỉ hiện My Bookings khi đã login
+            .map((navLink, index) => (
+              <NavLink
+                key={index}
+                to={navLink.path}
+                className={`group flex flex-col gap-0.5 text-lg font-bold tracking-wide transition-all relative
               ${isScrolled
-                  ? "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
-                  : "text-white drop-shadow-[0_0_12px_rgba(255,255,255,1)]"
-                }`}
-              onClick={() => scrollTo(0, 0)}
-            >
-              <span className="relative">
-                {navLink.name}
-                {index === 0 && (
-                  <span className="absolute -top-2 -right-3 text-xs">🎄</span>
-                )}
-                {index === 1 && (
-                  <span className="absolute -top-2 -right-3 text-xs">🎁</span>
-                )}
-              </span>
-              <div
-                className={`h-1 w-0 group-hover:w-full transition-all duration-300 rounded-full
+                    ? "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+                    : "text-white drop-shadow-[0_0_12px_rgba(255,255,255,1)]"
+                  }`}
+                onClick={() => scrollTo(0, 0)}
+              >
+                <span className="relative">
+                  {navLink.name}
+                  {navLink.icon && <span className="ml-1">{navLink.icon}</span>}
+                  {index === 0 && (
+                    <span className="absolute -top-2 -right-3 text-xs">🎄</span>
+                  )}
+                  {index === 1 && (
+                    <span className="absolute -top-2 -right-3 text-xs">🎁</span>
+                  )}
+                </span>
+                <div
+                  className={`h-1 w-0 group-hover:w-full transition-all duration-300 rounded-full
                 ${isScrolled
-                    ? "bg-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.8)]"
-                    : "bg-white shadow-[0_0_8px_white]"
-                  }
+                      ? "bg-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.8)]"
+                      : "bg-white shadow-[0_0_8px_white]"
+                    }
               `}
-              ></div>
-            </NavLink>
-          ))}
+                ></div>
+              </NavLink>
+            ))}
 
           {/* Christmas Search Bar */}
           <div className="relative group">
@@ -420,22 +424,24 @@ const Navbar = () => {
         </div>
 
         {/* Navigation Links */}
-        {navLinks.map((navLink) => (
-          <NavLink
-            key={navLink.name}
-            to={navLink.path}
-            onClick={() => {
-              setIsMenuOpen(false);
-              scrollTo(0, 0);
-            }}
-            className={({ isActive }) =>
-              `text-2xl hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] ${isActive ? "text-yellow-300" : "text-white"
-              }`
-            }
-          >
-            {navLink.name} ⭐
-          </NavLink>
-        ))}
+        {navLinks
+          .filter(navLink => !navLink.requireAuth || user) // Chỉ hiện My Bookings khi đã login
+          .map((navLink) => (
+            <NavLink
+              key={navLink.name}
+              to={navLink.path}
+              onClick={() => {
+                setIsMenuOpen(false);
+                scrollTo(0, 0);
+              }}
+              className={({ isActive }) =>
+                `text-2xl hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] ${isActive ? "text-yellow-300" : "text-white"
+                }`
+              }
+            >
+              {navLink.name} {navLink.icon || "⭐"}
+            </NavLink>
+          ))}
 
         {/* User Actions - Logged In */}
         {user && (
@@ -463,14 +469,6 @@ const Navbar = () => {
                 <p className="text-yellow-200 text-sm">Welcome back! 🎄</p>
               </div>
             )}
-
-            <NavLink
-              to="/my-bookings"
-              onClick={() => setIsMenuOpen(false)}
-              className="text-2xl hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] mt-2"
-            >
-              My Bookings 🎁
-            </NavLink>
 
             <button
               className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 px-6 py-2 text-lg font-bold rounded shadow-lg hover:scale-105 transition-all mt-6"
