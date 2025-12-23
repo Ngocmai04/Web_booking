@@ -3,13 +3,18 @@ import Booking from "../models/Booking.js";
 import Hotel from "../models/Hotel.js";
 import Room from "../models/Room.js";
 import stripe from "stripe";
+import mongoose from "mongoose";
+import crypto from "crypto";
 
 // Function to Check Availablity of Room
 const checkAvailability = async ({ checkInDate, checkOutDate, room }) => {
 
   try {
+    // Convert room to ObjectId if it's a string
+    const roomId = typeof room === 'string' ? new mongoose.Types.ObjectId(room) : room;
+    
     const bookings = await Booking.find({
-      room,
+      room: roomId,
       checkInDate: { $lte: checkOutDate },
       checkOutDate: { $gte: checkInDate },
     });
@@ -19,6 +24,7 @@ const checkAvailability = async ({ checkInDate, checkOutDate, room }) => {
 
   } catch (error) {
     console.error(error.message);
+    return false;
   }
 };
 
@@ -51,11 +57,11 @@ export const createBooking = async (req, res) => {
       return res.status(404).json({ success: false, message: "Room not found" });
     }
 
-    // Owner không được phép booking phòng của khách sạn do chính họ sở hữu
+    // Owners cannot book rooms in a hotel they own
     if (userRole === "hotelOwner" && roomData.hotel.owner.toString() === user.toString()) {
-      return res.status(403).json({ 
+      return res.json({ 
         success: false, 
-        message: "Owners cannot book rooms in their own hotel" 
+        message: "You cannot book rooms in a hotel you own." 
       });
     }
 
@@ -80,6 +86,10 @@ export const createBooking = async (req, res) => {
 
     totalPrice *= nights;
 
+    // Create confirmation token
+    const confirmationToken = crypto.randomBytes(32).toString('hex');
+    const confirmationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     const booking = await Booking.create({
       user,
       room,
@@ -88,31 +98,89 @@ export const createBooking = async (req, res) => {
       checkInDate,
       checkOutDate,
       totalPrice,
+      status: "pending",
+      isEmailConfirmed: false,
+      confirmationToken,
+      confirmationTokenExpires,
     });
+
+    // Confirmation URL
+    const confirmUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/confirm-booking/${booking._id}/${confirmationToken}`;
+
+    // Get user email - try from DB first, then from Clerk auth
+    const userEmail = req.user.email || req.auth?.user?.primaryEmailAddress?.emailAddress || req.auth?.user?.emailAddresses?.[0]?.emailAddress;
+    
+    console.log('📧 Email check:', { 
+      dbEmail: req.user.email, 
+      clerkEmail: req.auth?.user?.primaryEmailAddress?.emailAddress,
+      finalEmail: userEmail,
+      userId: req.user._id
+    });
+    
+    if (!userEmail) {
+      await Booking.findByIdAndDelete(booking._id);
+      return res.json({ 
+        success: false, 
+        message: "Unable to send confirmation email: no email address found for your account." 
+      });
+    }
 
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
-      to: req.user.email,
-      subject: 'Hotel Booking Details',
+      to: userEmail,
+      subject: 'Confirm your booking - Hotel Booking',
       html: `
-        <h2>Your Booking Details</h2>
-        <p>Dear ${req.user.username},</p>
-        <p>Thank you for your booking! Here are your details:</p>
-        <ul>
-          <li><strong>Booking ID:</strong> ${booking.id}</li>
-          <li><strong>Hotel Name:</strong> ${roomData.hotel.name}</li>
-          <li><strong>Location:</strong> ${roomData.hotel.address}</li>
-          <li><strong>Date:</strong> ${booking.checkInDate.toDateString()}</li>
-          <li><strong>Booking Amount:</strong>  ${process.env.CURRENCY || '$'} ${booking.totalPrice} /night</li>
-        </ul>
-        <p>We look forward to welcoming you!</p>
-        <p>If you need to make any changes, feel free to contact us.</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+          <h2 style="color: #2563eb; text-align: center;">🏨 Confirm Your Booking</h2>
+          <p>Hello <strong>${req.user.username}</strong>,</p>
+          <p>Thanks for your booking! Please confirm it by clicking the button below:</p>
+          
+          <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #374151;">Booking details:</h3>
+            <ul style="list-style: none; padding: 0;">
+              <li>📋 <strong>Booking ID:</strong> ${booking._id}</li>
+              <li>🏨 <strong>Hotel:</strong> ${roomData.hotel.name}</li>
+              <li>📍 <strong>Address:</strong> ${roomData.hotel.address}</li>
+              <li>📅 <strong>Check-in:</strong> ${booking.checkInDate.toDateString()}</li>
+              <li>📅 <strong>Check-out:</strong> ${booking.checkOutDate.toDateString()}</li>
+              <li>👥 <strong>Guests:</strong> ${booking.guests}</li>
+              <li>💰 <strong>Total:</strong> ${process.env.CURRENCY || '$'}${booking.totalPrice}</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${confirmUrl}" style="background: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+              ✅ Confirm Booking
+            </a>
+          </div>
+          
+          <p style="color: #ef4444; font-size: 14px;">⚠️ <strong>Note:</strong> This confirmation link expires in 24 hours. If you do not confirm, your booking will be cancelled automatically.</p>
+          
+          <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+          <p style="color: #6b7280; font-size: 12px; text-align: center;">
+            If you did not make this booking, you can safely ignore this email.
+          </p>
+        </div>
       `,
     };
 
-    await transporter.sendMail(mailOptions);
-
-    res.json({ success: true, message: "Booking created successfully" });
+    // Send confirmation email
+    try {
+      await transporter.sendMail(mailOptions);
+      res.json({ 
+        success: true, 
+        message: "Booking created! Please check your email to confirm your booking.",
+        requireConfirmation: true
+      });
+    } catch (emailError) {
+      console.log("Email sending failed:", emailError.message);
+      // If email sending fails, delete the booking and return error
+      await Booking.findByIdAndDelete(booking._id);
+      res.json({ 
+        success: false, 
+        message: "Unable to send the confirmation email. Please try again later." 
+      });
+    }
 
   } catch (error) {
     console.log(error);
@@ -126,9 +194,13 @@ export const createBooking = async (req, res) => {
 export const getUserBookings = async (req, res) => {
   try {
     const user = req.user._id;
-    const bookings = await Booking.find({ user }).populate("room hotel").sort({ createdAt: -1 });
+    const bookings = await Booking.find({ user })
+      .populate("room")
+      .populate("hotel")
+      .sort({ createdAt: -1 });
     res.json({ success: true, bookings });
   } catch (error) {
+    console.log("getUserBookings error:", error);
     res.json({ success: false, message: "Failed to fetch bookings" });
   }
 };
@@ -207,3 +279,129 @@ export const stripePayment = async (req, res) => {
     res.json({ success: false, message: "Payment Failed" });
   }
 }
+
+// Confirm booking via email
+// GET /api/bookings/confirm/:bookingId/:token
+export const confirmBooking = async (req, res) => {
+  try {
+    const { bookingId, token } = req.params;
+
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      return res.json({ success: false, message: "Booking not found." });
+    }
+
+    // Already confirmed?
+    if (booking.isEmailConfirmed) {
+      return res.json({ success: true, message: "This booking has already been confirmed.", alreadyConfirmed: true });
+    }
+
+    // Validate token
+    if (booking.confirmationToken !== token) {
+      return res.json({ success: false, message: "Invalid confirmation link." });
+    }
+
+    // Expired?
+    if (booking.confirmationTokenExpires < new Date()) {
+      // Delete expired booking
+      await Booking.findByIdAndDelete(bookingId);
+      return res.json({ success: false, message: "Confirmation link has expired. The booking has been cancelled." });
+    }
+
+    // Confirm booking
+    booking.isEmailConfirmed = true;
+    booking.status = "confirmed";
+    booking.confirmationToken = undefined;
+    booking.confirmationTokenExpires = undefined;
+    await booking.save();
+
+    res.json({ success: true, message: "Booking confirmed successfully!" });
+
+  } catch (error) {
+    console.log("confirmBooking error:", error);
+    res.json({ success: false, message: "Confirmation failed." });
+  }
+};
+
+// Resend confirmation email
+// POST /api/bookings/resend-confirmation
+export const resendConfirmation = async (req, res) => {
+  try {
+    const { bookingId } = req.body;
+    const user = req.user;
+
+    const booking = await Booking.findById(bookingId).populate("room hotel");
+
+    if (!booking) {
+      return res.json({ success: false, message: "Booking not found." });
+    }
+
+    if (booking.user !== user._id) {
+      return res.json({ success: false, message: "Access denied." });
+    }
+
+    if (booking.isEmailConfirmed) {
+      return res.json({ success: false, message: "This booking has already been confirmed." });
+    }
+
+    // Generate a new token
+    const confirmationToken = crypto.randomBytes(32).toString('hex');
+    const confirmationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    booking.confirmationToken = confirmationToken;
+    booking.confirmationTokenExpires = confirmationTokenExpires;
+    await booking.save();
+
+    const confirmUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/confirm-booking/${booking._id}/${confirmationToken}`;
+
+    // Get user email - try from DB first, then from Clerk auth
+    const userEmail = user.email || req.auth?.user?.primaryEmailAddress?.emailAddress;
+    
+    if (!userEmail) {
+      return res.json({ 
+        success: false, 
+        message: "Unable to send confirmation email: no email address found for your account." 
+      });
+    }
+
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: userEmail,
+      subject: 'Confirm your booking - Hotel Booking',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+          <h2 style="color: #2563eb; text-align: center;">🏨 Confirm Your Booking</h2>
+          <p>Hello <strong>${user.username}</strong>,</p>
+          <p>Please confirm your booking by clicking the button below:</p>
+          
+          <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #374151;">Booking details:</h3>
+            <ul style="list-style: none; padding: 0;">
+              <li>📋 <strong>Booking ID:</strong> ${booking._id}</li>
+              <li>🏨 <strong>Hotel:</strong> ${booking.hotel.name}</li>
+              <li>📅 <strong>Check-in:</strong> ${booking.checkInDate.toDateString()}</li>
+              <li>📅 <strong>Check-out:</strong> ${booking.checkOutDate.toDateString()}</li>
+              <li>💰 <strong>Total:</strong> ${process.env.CURRENCY || '$'}${booking.totalPrice}</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${confirmUrl}" style="background: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+              ✅ Confirm Booking
+            </a>
+          </div>
+          
+          <p style="color: #ef4444; font-size: 14px;">⚠️ This confirmation link expires in 24 hours.</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.json({ success: true, message: "Confirmation email resent." });
+
+  } catch (error) {
+    console.log("resendConfirmation error:", error);
+    res.json({ success: false, message: "Failed to send email." });
+  }
+};

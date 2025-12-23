@@ -13,11 +13,12 @@
 // };
 
 import User from "../models/User.js";
+import { clerkClient } from "@clerk/express";
 
 // Middleware bảo vệ route + tạo user MongoDB nếu chưa có
 export const protect = async (req, res, next) => {
   try {
-    const { userId, user } = req.auth; // userId + user được Clerk attach
+    const { userId } = req.auth;
 
     if (!userId) {
       return res
@@ -25,32 +26,48 @@ export const protect = async (req, res, next) => {
         .json({ success: false, message: "Not authenticated" });
     }
 
-    // Lấy email, username, image từ user do Clerk attach
-    const email = user?.primaryEmailAddress?.emailAddress;
-    const username = user?.username || user?.firstName || "User";
-    const image = user?.imageUrl;
+    // Fetch full user data from Clerk API
+    let clerkUser;
+    try {
+      clerkUser = await clerkClient.users.getUser(userId);
+    } catch (clerkError) {
+      console.error("Failed to fetch Clerk user:", clerkError.message);
+    }
 
-    // Kiểm tra MongoDB
+    // Get email, username, image from Clerk API response
+    const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
+    const username = clerkUser?.username || clerkUser?.firstName || "User";
+    const image = clerkUser?.imageUrl;
+
+    console.log('🔍 Clerk User Data:', { userId, email, username });
+
+    // Check MongoDB
     let dbUser = await User.findById(userId);
 
-    // Nếu chưa có → tạo
+    // If not exists → create
     if (!dbUser) {
       dbUser = await User.create({
-        _id: userId, // Clerk ID
+        _id: userId,
         email,
         username,
         image,
         recentSearchedCities: [],
       });
+      console.log('New user created:', userId, email);
+    } else if (email && dbUser.email !== email) {
+      // Update email if changed
+      dbUser.email = email;
+      await dbUser.save();
+      console.log('User email updated:', userId, email);
     }
 
-    // Kiểm tra tài khoản có bị khóa không
+    // Check if the account is locked
     if (!dbUser.isActive) {
       return res
         .status(403)
         .json({
           success: false,
-          message: "Tài khoản đã bị khóa. Vui lòng liên hệ admin.",
+          message: "Your account has been locked. Please contact an admin.",
         });
     }
 
@@ -68,7 +85,7 @@ export const isAdmin = async (req, res, next) => {
     if (req.user.role !== "admin") {
       return res
         .status(403)
-        .json({ success: false, message: "Chỉ Admin mới có quyền truy cập" });
+        .json({ success: false, message: "Admins only." });
     }
     next();
   } catch (err) {

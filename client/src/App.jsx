@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import Layout from './pages/hotelOwner/Layout'
 import Dashboard from './pages/hotelOwner/Dashboard'
 import ListRoom from './pages/hotelOwner/ListRoom'
+import EditRoom from './pages/hotelOwner/EditRoom'
 import AddHotel from './pages/hotelOwner/AddHotel'
 import EditHotel from './pages/hotelOwner/EditHotel'
 import ListHotel from './pages/hotelOwner/ListHotel'
@@ -19,6 +20,7 @@ import Loader from './components/Loader'
 import SnowFalling from './components/SnowFalling'
 import ReindeerCursor from './components/ReindeerCursor'
 import FlyingSanta from './components/FlyingSanta'
+import ConfirmBooking from './pages/ConfirmBooking'
 
 // Admin imports
 import AdminLayout from "./pages/admin/Layout";
@@ -152,6 +154,7 @@ const App = () => {
           <Route path="/rooms/:id" element={<RoomDetails />} />
           <Route path="my-bookings" element={<MyBookings />} />
           <Route path="/loader/:nextUrl" element={<Loader />} />
+          <Route path="/confirm-booking/:bookingId/:token" element={<ConfirmBooking />} />
 
           {/* Owner routes */}
           <Route path="/owner" element={<Layout />}>
@@ -160,6 +163,7 @@ const App = () => {
             <Route path="add-hotel" element={<AddHotel />} />
             <Route path="edit-hotel/:id" element={<EditHotel />} />
             <Route path="list-room" element={<ListRoom />} />
+            <Route path="edit-room/:roomId" element={<EditRoom />} />
           </Route>
 
           {/* Admin routes */}
