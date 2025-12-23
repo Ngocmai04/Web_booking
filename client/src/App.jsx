@@ -21,6 +21,8 @@ import SnowFalling from './components/SnowFalling'
 import ReindeerCursor from './components/ReindeerCursor'
 import FlyingSanta from './components/FlyingSanta'
 import ConfirmBooking from './pages/ConfirmBooking'
+import Experience from './pages/Experience'
+import About from './pages/About'
 
 // Admin imports
 import AdminLayout from "./pages/admin/Layout";
@@ -150,6 +152,8 @@ const App = () => {
       <div className='min-h-[70vh] relative z-[10]'>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/experience" element={<Experience />} />
+          <Route path="/about" element={<About />} />
           <Route path="/rooms" element={<AllRooms />} />
           <Route path="/rooms/:id" element={<RoomDetails />} />
           <Route path="my-bookings" element={<MyBookings />} />
