@@ -48,10 +48,14 @@ export const createRating = async (req, res) => {
     }
 
     //  Owner không được phép tạo review cho bất kỳ khách sạn nào
-    if (userRole === "hotelOwner") {
+    const hotelData = await Hotel.findById(hotel);
+    if (
+      userRole === "hotelOwner" &&
+      hotelData.owner.toString() === userId.toString()
+    ) {
       return res.status(403).json({
         success: false,
-        message: "Owners cannot review their own hotel",
+        message: "You cannot review your own hotel",
       });
     }
 
