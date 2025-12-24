@@ -21,18 +21,25 @@ dotenv.config();
 const app = express();
 
 // CORS configuration
-const corsOptions = {
-  origin: [
-    process.env.CLIENT_URL || "https://hotel-booking-iota-weld.vercel.app",
-    "http://localhost:5173",
-  ],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        "https://hotel-booking-iota-weld.vercel.app",
+        "http://localhost:5173",
+      ];
 
-app.use(cors(corsOptions));
-app.options("/", cors(corsOptions));
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
+app.options(/.*/, cors());
 
 // API to listen to Stripe Webhooks
 app.post(
