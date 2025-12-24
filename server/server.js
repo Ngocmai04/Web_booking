@@ -22,18 +22,30 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "https://web-booking-9vxh.vercel.app",
-    "https://web-booking-eeb1pa7di-ngocmai04s-projects.vercel.app"
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost for development
+    if (origin.includes('localhost')) {
+      return callback(null, true);
+    }
+    
+    // Allow all Vercel deployments (preview and production)
+    if (origin.includes('vercel.app') || origin.includes('ngocmai04s-projects')) {
+      return callback(null, true);
+    }
+    
+    // Block other origins
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 };
 
 app.use(cors(corsOptions));
-app.options("/", cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // API to listen to Stripe Webhooks
 app.post(
