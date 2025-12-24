@@ -19,7 +19,21 @@ connectCloudinary();
 dotenv.config();
 
 const app = express();
-app.use(cors()); // Enable Cross-Origin Resource Sharing
+
+// CORS configuration
+const corsOptions = {
+  origin: [
+    "http://localhost:5173",
+    "https://web-booking-9vxh.vercel.app",
+    "https://web-booking-eeb1pa7di-ngocmai04s-projects.vercel.app"
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // API to listen to Stripe Webhooks
 app.post(
@@ -29,7 +43,6 @@ app.post(
 );
 
 // Middleware to parse JSON
-app.use(cors());
 app.use(express.json());
 app.use(clerkMiddleware());
 

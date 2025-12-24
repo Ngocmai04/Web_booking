@@ -3,6 +3,7 @@ import { assets } from "../../assets/assets";
 import toast from "react-hot-toast";
 import { useAppContext } from "../../context/AppContext";
 import { useNavigate } from "react-router-dom";
+import { ROOM_TYPES } from "../../constants/roomTypes";
 import {
   Bed,
   Hotel,
@@ -333,10 +334,11 @@ const ListRoom = () => {
                   required
                 >
                   <option value="">Select Room Type</option>
-                  <option value="Single Bed">Single Bed</option>
-                  <option value="Double Bed">Double Bed</option>
-                  <option value="Luxury Room">Luxury Room</option>
-                  <option value="Family Suite">Family Suite</option>
+                  {ROOM_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
                 </select>
               </div>
 

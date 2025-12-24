@@ -1,7 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
 import { assets } from "../assets/assets";
+
+// Helper function to extract city from Nominatim address
+const getCityFromNominatimAddress = (address = {}) =>
+  address.city ||
+  address.town ||
+  address.village ||
+  address.county ||
+  address.state ||
+  address.region ||
+  "";
 
 const HotelReg = () => {
   const {
@@ -17,6 +27,71 @@ const HotelReg = () => {
   const [address, setAddress] = useState("");
   const [contact, setContact] = useState("");
   const [city, setCity] = useState("");
+
+  // Address autocomplete states
+  const [addressResults, setAddressResults] = useState([]);
+  const [isAddressLoading, setIsAddressLoading] = useState(false);
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
+  const abortRef = useRef(null);
+  const debounceRef = useRef(null);
+
+  // Address autocomplete effect
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (abortRef.current) abortRef.current.abort();
+
+    const q = (address || "").trim();
+    if (q.length < 3) {
+      setAddressResults([]);
+      setIsAddressLoading(false);
+      setIsAddressOpen(false);
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      const controller = new AbortController();
+      abortRef.current = controller;
+      setIsAddressLoading(true);
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=${encodeURIComponent(q)}`;
+        const res = await fetch(url, {
+          signal: controller.signal,
+          headers: { "Accept-Language": "vi" },
+        });
+        if (!res.ok) throw new Error("Nominatim request failed");
+        const data = await res.json();
+        const mapped = (Array.isArray(data) ? data : []).map((item) => ({
+          displayName: item.display_name,
+          latitude: Number.parseFloat(item.lat),
+          longitude: Number.parseFloat(item.lon),
+          city: getCityFromNominatimAddress(item.address),
+        }));
+        setAddressResults(mapped);
+        setIsAddressOpen(true);
+      } catch (e) {
+        if (e?.name !== "AbortError") {
+          setAddressResults([]);
+          setIsAddressOpen(false);
+        }
+      } finally {
+        setIsAddressLoading(false);
+      }
+    }, 350);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (abortRef.current) abortRef.current.abort();
+    };
+  }, [address]);
+
+  const handleAddressSelect = (item) => {
+    setAddress(item.displayName);
+    if (item.city) {
+      setCity(item.city);
+    }
+    setIsAddressOpen(false);
+    setAddressResults([]);
+  };
 
   const onSubmitHandler = async (event) => {
     try {
@@ -147,23 +222,56 @@ const HotelReg = () => {
             />
           </div>
 
-          <div className="w-full mt-4 group">
+          <div className="w-full mt-4 group relative">
             <label
               htmlFor="address"
               className="font-semibold text-red-700 flex items-center gap-2"
             >
               📍 Address
             </label>
-            <textarea
+            <input
               id="address"
-              rows="2"
               onChange={(e) => setAddress(e.target.value)}
+              onFocus={() => addressResults.length && setIsAddressOpen(true)}
               value={address}
-              placeholder="Type here"
-              className="border-2 border-red-200 rounded-lg w-full px-4 py-3 mt-1 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-200 font-light resize-none bg-white hover:bg-red-50 transition-all duration-300 focus:shadow-lg"
+              placeholder="Search address..."
+              className="border-2 border-red-200 rounded-lg w-full px-4 py-3 mt-1 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-200 font-light bg-white hover:bg-red-50 transition-all duration-300 focus:shadow-lg"
               type="text"
+              autoComplete="off"
               required
             />
+            
+            {isAddressLoading && (
+              <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                🔍 Searching OpenStreetMap…
+              </p>
+            )}
+
+            {isAddressOpen && addressResults.length > 0 && (
+              <div className="absolute z-50 mt-1 w-full rounded-lg border-2 border-green-300 bg-white shadow-xl max-h-48 overflow-auto">
+                <ul>
+                  {addressResults.map((item, idx) => (
+                    <li key={`${item.longitude}-${item.latitude}-${idx}`}>
+                      <button
+                        type="button"
+                        onClick={() => handleAddressSelect(item)}
+                        className="w-full text-left px-4 py-3 hover:bg-gradient-to-r hover:from-red-50 hover:to-green-50 border-b border-gray-100 last:border-b-0 transition-all duration-200"
+                      >
+                        <p className="text-sm text-gray-800 font-medium">📍 {item.displayName}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {item.city && <span className="text-green-600">🌆 {item.city}</span>}
+                          {Number.isFinite(item.latitude) && Number.isFinite(item.longitude) && (
+                            <span className="ml-2">
+                              📌 {item.latitude.toFixed(4)}, {item.longitude.toFixed(4)}
+                            </span>
+                          )}
+                        </p>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="w-full mt-4 group">
