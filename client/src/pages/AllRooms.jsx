@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useAppContext } from "../context/AppContext";
 import StarRating from "../components/StarRating";
 import { useSearchParams } from "react-router-dom";
+import { ROOM_TYPES, PRICE_RANGES, SORT_OPTIONS } from "../constants/roomTypes";
 
 const CheckBox = ({ label, selected = true, onChange = () => {} }) => {
   return (
@@ -49,20 +50,9 @@ const AllRooms = () => {
 
   const destination = searchParams.get("destination") || "";
 
-  const roomTypes = ["Single Bed", "Double Bed", "Luxury Room", "Family Suite"];
-
-  const priceRanges = [
-    "0 to 500",
-    "500 to 1000",
-    "1000 to 2000",
-    "2000 to 3000",
-  ];
-
-  const sortOptions = [
-    "Price Low to High",
-    "Price High to Low",
-    "Newest First",
-  ];
+  const roomTypes = ROOM_TYPES;
+  const priceRanges = PRICE_RANGES.map((r) => r.label);
+  const sortOptions = SORT_OPTIONS;
 
   const handleFilterChange = (checked, value, type) => {
     setSelectedFilters((prevFilters) => {

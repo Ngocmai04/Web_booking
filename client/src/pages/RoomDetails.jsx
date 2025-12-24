@@ -7,7 +7,9 @@ import toast from 'react-hot-toast';
 
 const RoomDetails = () => {
     const { id } = useParams();
-    const { facilityIcons, rooms, getToken, axios, navigate, user, isOwner } = useAppContext(); // ✅ Thêm user, isOwner từ context
+    const { facilityIcons, rooms, getToken, axios, navigate, user } = useAppContext(); // ✅ Thêm user từ context
+    const isHotelOwner =
+    user?.role === "hotelOwner" && room?.hotel?.owner?._id === user?._id;
 
     const [room, setRoom] = useState(null);
     const [mainImage, setMainImage] = useState(null);
@@ -367,7 +369,7 @@ const RoomDetails = () => {
 
                         {/* Write Review Section in Sidebar */}
                         {/* Ẩn nút Write Review trong sidebar cho owner */}
-                        {!isOwner && (
+                        {!isHotelOwner && (
                             <div className="sticky bottom-0 bg-gradient-to-br from-yellow-100 to-green-100 p-6 border-t-4 border-red-300">
                                 <button 
                                     onClick={() => {
@@ -713,7 +715,7 @@ const RoomDetails = () => {
                             </h2>
                             <div className="flex gap-3">
                                 {/* Ẩn nút Write Review cho owner */}
-                                {!isOwner && (
+                                {!isHotelOwner && (
                                     <button 
                                         onClick={() => setShowReviewForm(true)}
                                         className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg border-2 border-red-500"
@@ -784,7 +786,7 @@ const RoomDetails = () => {
                             <div className="text-center py-8">
                                 <p className="text-gray-500 mb-4">No reviews yet. Be the first to review!</p>
                                 {/* Ẩn nút Write First Review cho owner */}
-                                {!isOwner && (
+                                {!isHotelOwner && (
                                     <button 
                                         onClick={() => setShowReviewForm(true)}
                                         className="px-6 py-3 bg-gradient-to-r from-red-500 to-green-500 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"

@@ -5,6 +5,44 @@ import User from "../models/User.js";
 
 // ==================== QUẢN LÝ NGƯỜI DÙNG ====================
 
+// Thêm người dùng mới (Admin)
+// POST /api/admin/users
+export const addUserAdmin = async (req, res) => {
+  try {
+    const { username, email, role } = req.body;
+
+    // Validate
+    if (!username || !email || !role) {
+      return res.json({
+        success: false,
+        message: "Username, email, and role are required.",
+      });
+    }
+
+    if (!["user", "hotelOwner", "admin"].includes(role)) {
+      return res.json({ success: false, message: "Invalid role." });
+    }
+
+    // Check if email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.json({ success: false, message: "Email already in use." });
+    }
+
+    // Create user (note: password is usually set by Clerk, but we'll create without it for admin)
+    const user = await User.create({
+      username,
+      email,
+      role,
+      isActive: true,
+    });
+
+    res.json({ success: true, message: "User added successfully.", user });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
 // Lấy tất cả người dùng
 // GET /api/admin/users
 export const getAllUsers = async (req, res) => {
@@ -97,6 +135,101 @@ export const changeUserRole = async (req, res) => {
 };
 
 // ==================== QUẢN LÝ KHÁCH SẠN ====================
+
+// Thêm khách sạn (Admin)
+// POST /api/admin/hotels
+export const addHotelAdmin = async (req, res) => {
+  try {
+    const { name, address, contact, city, latitude, longitude, ownerId } =
+      req.body;
+
+    // Kiểm tra thông tin bắt buộc
+    if (!name || !address || !contact || !city || !ownerId) {
+      return res.json({
+        success: false,
+        message: "Name, address, contact, city, and owner are required.",
+      });
+    }
+
+    // Kiểm tra owner có tồn tại
+    const owner = await User.findById(ownerId);
+    if (!owner) {
+      return res.json({ success: false, message: "Owner not found." });
+    }
+
+    const lat =
+      latitude === null || latitude === undefined ? null : Number(latitude);
+    const lng =
+      longitude === null || longitude === undefined ? null : Number(longitude);
+
+    const hotel = await Hotel.create({
+      name,
+      address,
+      contact,
+      city,
+      owner: ownerId,
+      latitude: Number.isFinite(lat) ? lat : null,
+      longitude: Number.isFinite(lng) ? lng : null,
+      isApproved: true, // Admin tự động approve
+    });
+
+    // Cập nhật role người dùng thành hotelOwner nếu chưa
+    if (owner.role !== "hotelOwner") {
+      await User.findByIdAndUpdate(ownerId, { role: "hotelOwner" });
+    }
+
+    res.json({ success: true, message: "Hotel added successfully.", hotel });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// Cập nhật khách sạn (Admin)
+// PUT /api/admin/hotels/:id
+export const updateHotelAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, address, contact, city, latitude, longitude, ownerId } =
+      req.body;
+
+    const hotel = await Hotel.findById(id);
+    if (!hotel) {
+      return res.json({ success: false, message: "Hotel not found." });
+    }
+
+    // Nếu thay đổi owner, kiểm tra owner mới có tồn tại
+    if (ownerId && ownerId !== hotel.owner.toString()) {
+      const newOwner = await User.findById(ownerId);
+      if (!newOwner) {
+        return res.json({ success: false, message: "New owner not found." });
+      }
+      hotel.owner = ownerId;
+
+      // Cập nhật role người dùng thành hotelOwner nếu chưa
+      if (newOwner.role !== "hotelOwner") {
+        await User.findByIdAndUpdate(ownerId, { role: "hotelOwner" });
+      }
+    }
+
+    const lat =
+      latitude === null || latitude === undefined ? null : Number(latitude);
+    const lng =
+      longitude === null || longitude === undefined ? null : Number(longitude);
+
+    if (name) hotel.name = name;
+    if (address) hotel.address = address;
+    if (contact) hotel.contact = contact;
+    if (city) hotel.city = city;
+    if (Number.isFinite(lat)) hotel.latitude = lat;
+    if (Number.isFinite(lng)) hotel.longitude = lng;
+
+    await hotel.save();
+
+    res.json({ success: true, message: "Hotel updated.", hotel });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
 
 // Lấy tất cả khách sạn (bao gồm cả chưa duyệt)
 // GET /api/admin/hotels
@@ -218,6 +351,52 @@ export const deleteHotelAdmin = async (req, res) => {
 };
 
 // ==================== QUẢN LÝ PHÒNG ====================
+
+// Thêm phòng mới (Admin)
+// POST /api/admin/rooms
+export const addRoomAdmin = async (req, res) => {
+  try {
+    const { hotelId, roomType, pricePerNight, amenities, images } = req.body;
+
+    // Validate
+    if (!hotelId || !roomType || !pricePerNight || !amenities) {
+      return res.json({
+        success: false,
+        message: "Hotel, room type, price, and amenities are required.",
+      });
+    }
+
+    // Check if hotel exists
+    const hotel = await Hotel.findById(hotelId);
+    if (!hotel) {
+      return res.json({ success: false, message: "Hotel not found." });
+    }
+
+    const room = await Room.create({
+      hotel: hotelId,
+      roomType,
+      pricePerNight: Number(pricePerNight),
+      amenities: Array.isArray(amenities)
+        ? amenities
+        : amenities.split(",").map((a) => a.trim()),
+      images: images || [],
+      isAvailable: true,
+    });
+
+    const populatedRoom = await room.populate(
+      "hotel",
+      "name city owner isApproved isActive"
+    );
+
+    res.json({
+      success: true,
+      message: "Room added successfully.",
+      room: populatedRoom,
+    });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
 
 // Lấy tất cả phòng
 // GET /api/admin/rooms
