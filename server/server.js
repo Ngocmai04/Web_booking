@@ -33,9 +33,6 @@ app.use(
 );
 app.options(/.*/, cors());
 
-app.use(cors(corsOptions));
-app.options("/", cors(corsOptions));
-
 // API to listen to Stripe Webhooks
 app.post(
   "/api/stripe",
