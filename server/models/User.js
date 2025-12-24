@@ -11,7 +11,7 @@ const userSchema = mongoose.Schema(
       enum: ["user", "hotelOwner", "admin"],
       default: "user",
     },
-    isActive: { type: Boolean, default: true }, // Admin can lock/unlock accounts
+    // isActive: { type: Boolean, default: true }, // Admin can lock/unlock accounts
     recentSearchedCities: [{ type: String, required: true }],
   },
   { timestamps: true }
