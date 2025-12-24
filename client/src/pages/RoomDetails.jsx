@@ -886,7 +886,7 @@ const RoomDetails = () => {
                                 </p>
                                 <div className='flex items-center gap-3 mb-3'>
                                     <StarRating />
-                                    <p className='text-gray-700 font-medium'>⭐ {reviews.length}+ reviews</p>
+                                    <p className='text-gray-700 font-medium'>{reviews.length}+ reviews</p>
                                 </div>
                                 <button className='px-6 py-2 rounded-xl text-white bg-gradient-to-r from-red-600 to-green-600 hover:from-red-700 hover:to-green-700 transition-all shadow-lg hover:shadow-xl font-bold border-2 border-yellow-400 hover:scale-105'>
                                     📞 Contact Host

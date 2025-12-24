@@ -44,6 +44,8 @@ const AllRooms = () => {
   const [selectedHotelId, setSelectedHotelId] = useState("");
   const [hotelRooms, setHotelRooms] = useState([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
+  const [ratingsData, setRatingsData] = useState({});
+  const [expandedAmenities, setExpandedAmenities] = useState({});
 
   const destination = searchParams.get("destination") || "";
 
@@ -78,6 +80,10 @@ const AllRooms = () => {
 
   const handleSortChange = (sortOption) => {
     setSelectedSort(sortOption);
+  };
+
+    const toggleAmenities = (roomId) => {
+    setExpandedAmenities(prev => ({ ...prev, [roomId]: !prev[roomId] }));
   };
 
   const matchesRoomType = useCallback(
@@ -158,6 +164,31 @@ const AllRooms = () => {
 
     fetchHotelRooms();
   }, [selectedHotelId, axios]);
+
+   useEffect(() => {
+    const fetchRatingsForRooms = async () => {
+      if (!hotelRooms.length) return;
+      const newRatingsData = {};
+      const uniqueHotelIds = [...new Set(hotelRooms.map(room => room.hotel?._id).filter(Boolean))];
+      
+      await Promise.all(uniqueHotelIds.map(async (hotelId) => {
+        try {
+          const res = await axios.get(`/api/ratings/average?hotel=${hotelId}`);
+          if (res.data.success) {
+            newRatingsData[hotelId] = {
+              averageRating: Number(res.data.averages.overall) || 0,
+              reviewCount: res.data.totalReviews || 0,
+            };
+          }
+        } catch (err) {
+          console.error("Fetch rating failed for hotel:", hotelId, err);
+          newRatingsData[hotelId] = { averageRating: 0, reviewCount: 0 };
+        }
+      }));
+      setRatingsData(newRatingsData);
+    };
+    fetchRatingsForRooms();
+  }, [hotelRooms, axios]);
 
   const filteredRooms = useMemo(() => {
     return hotelRooms
@@ -327,125 +358,81 @@ const AllRooms = () => {
             </div>
           )}
 
-          {/* Room Cards */}
-          <div className="space-y-8">
-            {filteredRooms.map((room, index) => (
-              <div
-                key={room._id}
-                className="bg-gradient-to-br from-white via-red-50 to-green-50 backdrop-blur-sm rounded-3xl shadow-2xl border-4 border-yellow-400/50 hover:border-green-400 overflow-hidden transform hover:scale-[1.02] transition-all duration-500 animate-slideIn"
-                style={{ animationDelay: `${index * 0.15}s` }}
-              >
-                <div className="flex flex-col md:flex-row">
-                  {/* Image Section */}
-                  <div className="md:w-1/2 relative group overflow-hidden">
-                    <div className="absolute top-4 right-4 z-20 bg-gradient-to-r from-red-600 to-green-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-xl flex items-center gap-2">
-                      <i className="fas fa-tree"></i> Featured
-                    </div>
-                    {room.discount > 0 && (
-                      <div className="absolute top-4 left-4 z-20 bg-yellow-400 text-red-700 px-4 py-2 rounded-full font-black text-lg shadow-xl animate-bounce flex items-center gap-2">
-                        <i className="fas fa-percent"></i> {room.discount}% OFF
-                      </div>
-                    )}
-                    <img
-                      title="View Room Details"
-                      onClick={() => {
-                        navigate(`/rooms/${room._id}`);
-                        scrollTo(0, 0);
-                      }}
-                      src={room.images[0]}
-                      alt="hotel-img"
-                      className="w-full h-80 md:h-full object-cover cursor-pointer transform group-hover:scale-110 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-red-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  </div>
+                    <div className="space-y-8">
+            {filteredRooms.map((room, index) => {
+              const hotelId = room.hotel?._id;
+              const { averageRating = 0, reviewCount = 0 } = ratingsData[hotelId] || {};
+              const isExpanded = expandedAmenities[room._id];
+              const visibleAmenities = isExpanded ? room.amenities : room.amenities.slice(0, 4);
 
-                  {/* Content Section */}
-                  <div className="md:w-1/2 p-6 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <i className="fas fa-map-marker-alt text-red-600 text-xl"></i>
-                        <p className="text-green-700 font-semibold">
-                          {room.hotel.city}
-                        </p>
-                      </div>
-
-                      <h2
-                        onClick={() => {
-                          navigate(`/rooms/${room._id}`);
-                          scrollTo(0, 0);
-                        }}
-                        className="text-transparent bg-clip-text bg-gradient-to-r from-red-700 to-green-700 text-3xl font-playfair font-bold cursor-pointer hover:scale-105 transition-transform inline-block mb-3"
-                        title="View Room Details"
-                      >
-                        {room.hotel.name}
-                      </h2>
-
-                      <div className="flex items-center gap-2 mb-3">
-                        <StarRating />
-                        <p className="text-gray-600 font-medium flex items-center gap-1">
-                          <i className="fas fa-star text-yellow-500"></i> 200+
-                          reviews
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-gray-600 mb-4 bg-red-100 rounded-lg px-3 py-2 border-2 border-red-300">
-                        <i className="fas fa-location-dot text-red-600"></i>
-                        <span className="text-sm">{room.hotel.address}</span>
-                      </div>
-
-                      {/* Amenities */}
-                      <div className="flex flex-wrap gap-3 mb-4">
-                        {room.amenities.slice(0, 4).map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-green-100 to-red-100 border-2 border-green-300 shadow-md hover:scale-110 transition-transform"
-                          >
-                            <img
-                              src={facilityIcons[item]}
-                              alt={item}
-                              className="w-5 h-5"
-                            />
-                            <p className="text-xs font-semibold text-gray-700">
-                              {item}
-                            </p>
-                          </div>
-                        ))}
-                        {room.amenities.length > 4 && (
-                          <div className="flex items-center gap-1 px-3 py-2 rounded-xl bg-yellow-100 border-2 border-yellow-400 text-xs font-bold text-yellow-800">
-                            +{room.amenities.length - 4} more
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Room Type Badge */}
-                      <div className="inline-block px-4 py-2 bg-gradient-to-r from-red-500 to-green-500 text-white rounded-full text-sm font-bold shadow-lg mb-4 flex items-center gap-2 w-fit">
-                        <i className="fas fa-sparkles"></i> {room.roomType}
-                      </div>
+              return (
+                <div key={room._id} className="bg-gradient-to-br from-white via-red-50 to-green-50 backdrop-blur-sm rounded-3xl shadow-2xl border-4 border-yellow-400/50 hover:border-green-400 overflow-hidden transform hover:scale-[1.02] transition-all duration-500 animate-slideIn" style={{ animationDelay: `${index * 0.15}s` }}>
+                  <div className="flex flex-col md:flex-row">
+                    <div className="md:w-1/2 relative group overflow-hidden">
+                      <div className="absolute top-4 right-4 z-20 bg-gradient-to-r from-red-600 to-green-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-xl flex items-center gap-2"><i className="fas fa-tree"></i> Featured</div>
+                      {room.discount > 0 && <div className="absolute top-4 left-4 z-20 bg-yellow-400 text-red-700 px-4 py-2 rounded-full font-black text-lg shadow-xl animate-bounce flex items-center gap-2"><i className="fas fa-percent"></i> {room.discount}% OFF</div>}
+                      <img title="View Room Details" onClick={() => { navigate(`/rooms/${room._id}`); scrollTo(0, 0); }} src={room.images[0]} alt="hotel-img" className="w-full h-80 md:h-full object-cover cursor-pointer transform group-hover:scale-110 transition-transform duration-700" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-red-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     </div>
 
-                    {/* Price & CTA */}
-                    <div className="flex items-center justify-between pt-4 border-t-2 border-red-200">
+                    <div className="md:w-1/2 p-6 flex flex-col justify-between">
                       <div>
-                        <p className="text-sm text-gray-500">From</p>
-                        <p className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-green-600">
-                          ${room.pricePerNight}
-                        </p>
-                        <p className="text-xs text-gray-500">/night</p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <i className="fas fa-map-marker-alt text-red-600 text-xl"></i>
+                          <p className="text-green-700 font-semibold">{room.hotel.city}</p>
+                        </div>
+
+                        <h2 onClick={() => { navigate(`/rooms/${room._id}`); scrollTo(0, 0); }} className="text-transparent bg-clip-text bg-gradient-to-r from-red-700 to-green-700 text-3xl font-playfair font-bold cursor-pointer hover:scale-105 transition-transform inline-block mb-3" title="View Room Details">{room.hotel.name}</h2>
+
+                        <div className="flex items-center gap-2 mb-3">
+                          <StarRating rating={averageRating} />
+                          <p className="text-gray-600 font-medium flex items-center gap-1">
+                            <i className="fas fa-star text-yellow-500"></i>
+                            {reviewCount > 0 ? `${reviewCount} review${reviewCount !== 1 ? 's' : ''}` : 'No reviews yet'}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-gray-600 mb-4 bg-red-100 rounded-lg px-3 py-2 border-2 border-red-300">
+                          <i className="fas fa-location-dot text-red-600"></i>
+                          <span className="text-sm">{room.hotel.address}</span>
+                        </div>
+
+                        <div className="mb-4">
+                          <div className="flex flex-wrap gap-3">
+                            {visibleAmenities.map((item, amenityIndex) => (
+                              <div key={amenityIndex} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-green-100 to-red-100 border-2 border-green-300 shadow-md hover:scale-110 transition-transform">
+                                <img src={facilityIcons[item]} alt={item} className="w-5 h-5" />
+                                <p className="text-xs font-semibold text-gray-700">{item}</p>
+                              </div>
+                            ))}
+                            {room.amenities.length > 4 && (
+                              <button onClick={() => toggleAmenities(room._id)} className="flex items-center gap-1 px-3 py-2 rounded-xl bg-yellow-100 border-2 border-yellow-400 text-xs font-bold text-yellow-800 hover:bg-yellow-200 hover:scale-110 transition-all cursor-pointer">
+                                {isExpanded ? (<><i className="fas fa-chevron-up"></i> Show Less</>) : (<>+{room.amenities.length - 4} more <i className="fas fa-chevron-down"></i></>)}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="inline-block px-4 py-2 bg-gradient-to-r from-red-500 to-green-500 text-white rounded-full text-sm font-bold shadow-lg mb-4 flex items-center gap-2 w-fit">
+                          <i className="fas fa-sparkles"></i> {room.roomType}
+                        </div>
                       </div>
-                      <button
-                        onClick={() => {
-                          navigate(`/rooms/${room._id}`);
-                          scrollTo(0, 0);
-                        }}
-                        className="px-6 py-3 bg-gradient-to-r from-red-600 via-green-600 to-red-600 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-110 transition-all border-3 border-yellow-400 flex items-center gap-2"
-                      >
-                        <i className="fas fa-gift"></i> View Details
-                      </button>
+
+                      <div className="flex items-center justify-between pt-4 border-t-2 border-red-200">
+                        <div>
+                          <p className="text-sm text-gray-500">From</p>
+                          <p className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-green-600">${room.pricePerNight}</p>
+                          <p className="text-xs text-gray-500">/night</p>
+                        </div>
+                        <button onClick={() => { navigate(`/rooms/${room._id}`); scrollTo(0, 0); }} className="px-6 py-3 bg-gradient-to-r from-red-600 via-green-600 to-red-600 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-110 transition-all border-3 border-yellow-400 flex items-center gap-2">
+                          <i className="fas fa-gift"></i> View Details
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* No Rooms Message */}

@@ -58,16 +58,16 @@ const ChristmasLights = () => (
 
 const Navbar = () => {
   const navLinks = [
-    { name: "Home", path: "/", requireAuth: false },
-    { name: "Hotels", path: "/rooms", requireAuth: false },
+    { name: "Home", path: "/", requireAuth: false, icon: "🎄" },
+    { name: "Hotels", path: "/rooms", requireAuth: false, icon: "🎁" },
     { name: "Experience", path: "/experience", requireAuth: false },
     { name: "About", path: "/about", requireAuth: false },
-    { name: "My Bookings", path: "/my-bookings", requireAuth: true }
   ];
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const location = useLocation();
 
   const isHomePage = location.pathname === "/";
@@ -98,6 +98,17 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [location.pathname]);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showUserMenu && !e.target.closest('.user-menu-container')) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserMenu]);
 
   return (
     <>
@@ -150,7 +161,7 @@ const Navbar = () => {
       `}</style>
 
       <nav
-        className={`fixed top-0 left-0 w-full flex items-center justify-between px-4 md:px-16 lg:px-24 xl:px-32 transition-all duration-500 z-50 overflow-hidden
+        className={`fixed top-0 left-0 w-full flex items-center justify-between px-4 md:px-16 lg:px-24 xl:px-32 transition-all duration-500 z-[100] overflow-visible
         ${isScrolled
             ? "bg-gradient-to-r from-red-700 via-green-700 to-red-700 shadow-2xl backdrop-blur-lg py-3 md:py-4 border-b-2 border-yellow-400"
             : isHomePage
@@ -197,7 +208,7 @@ const Navbar = () => {
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-4 lg:gap-8 relative z-10">
           {navLinks
-            .filter(navLink => !navLink.requireAuth || user) // Chỉ hiện My Bookings khi đã login
+            .filter(navLink => !navLink.requireAuth || user)
             .map((navLink, index) => (
               <NavLink
                 key={index}
@@ -211,12 +222,8 @@ const Navbar = () => {
               >
                 <span className="relative">
                   {navLink.name}
-                  {navLink.icon && <span className="ml-1">{navLink.icon}</span>}
-                  {index === 0 && (
-                    <span className="absolute -top-2 -right-3 text-xs">🎄</span>
-                  )}
-                  {index === 1 && (
-                    <span className="absolute -top-2 -right-3 text-xs">🎁</span>
+                  {navLink.icon && (
+                    <span className="absolute -top-2 -right-3 text-xs">{navLink.icon}</span>
                   )}
                 </span>
                 <div
@@ -285,7 +292,7 @@ const Navbar = () => {
             ></div>
           </div>
 
-          {/* Hotel Button */}
+          {/* Hotel Button
           {user && (
             <button
               className={`px-5 py-2 text-sm font-bold rounded-full tracking-wide transition-all backdrop-blur-md shadow-lg relative overflow-hidden group
@@ -303,42 +310,102 @@ const Navbar = () => {
             >
               <span className="relative z-10">
                 {isAdmin
-                  ? "👑 Admin Panel"
+                  ? "👑 Admin"
                   : isOwner
                     ? "🎄 Dashboard"
-                    : "🎁 List Your Hotel"}
+                    : "🎁 List Hotel"}
               </span>
               <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
             </button>
-          )}
-        </div>
+          )} */}
+        </div> 
 
         {/* Right Section - Desktop */}
-        <div className="hidden md:flex items-center gap-3 relative z-10">
+        <div className="hidden md:flex items-center gap-3 relative z-[110]">
           {isLoaded && clerkUser ? (
-            <>
-              {/* Clerk UserButton (Avatar) */}
-              <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent p-0.5 w-10 h-10 flex items-center justify-center overflow-hidden">
+            <div className="relative user-menu-container flex items-center gap-3">
+              {/* User Avatar - Click for Clerk Menu */}
+              <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent p-0.5 w-10 h-10 flex items-center justify-center overflow-hidden hover:scale-110 transition-transform cursor-pointer">
                 <UserButton
                   appearance={{
                     elements: {
-                      userButtonAvatarBox: "!w-12 !h-12",
+                      userButtonAvatarBox: "!w-full !h-full",
                       userButtonImage: "!w-full !h-full",
-                      userButtonTrigger:
-                        "!p-0 !border-none !shadow-none focus:!shadow-none",
+                      userButtonTrigger: "!p-0 !border-none !shadow-none focus:!shadow-none",
                     },
                   }}
                 />
               </div>
 
-              {/* User Info (Name) */}
-              <div className="flex flex-col items-start">
-                <p className="text-white font-semibold text-sm drop-shadow-md">
-                  {clerkUser.fullName || `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}` || clerkUser.username}
-                </p>
-                <p className="text-yellow-200 text-xs">Welcome back! 🎄</p>
-              </div>
-            </>
+              {/* User Name - Click for Dropdown */}
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-2 hover:scale-105 transition-transform"
+              >
+                <div className="flex flex-col items-start">
+                  <p className="text-white font-semibold text-sm drop-shadow-md">
+                    {clerkUser.fullName || clerkUser.firstName || clerkUser.username}
+                  </p>
+                  <p className="text-yellow-200 text-xs">Welcome! 🎄</p>
+                </div>
+                <svg
+                  className={`w-4 h-4 text-white transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Dropdown Menu */}
+              {showUserMenu && (
+                <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-xl shadow-2xl border-2 border-red-200 overflow-hidden z-[9999]">
+                  <div className="bg-gradient-to-r from-red-500 to-green-500 p-4 text-white">
+                    <div className="flex items-center gap-3 mb-2">
+                      <img
+                        src={clerkUser.imageUrl}
+                        alt="Profile"
+                        className="w-12 h-12 rounded-full ring-2 ring-white"
+                      />
+                      <div className="flex-1">
+                        <p className="font-bold text-lg truncate">{clerkUser.fullName || clerkUser.firstName}</p>
+                        <p className="text-xs opacity-90 truncate">{clerkUser.primaryEmailAddress?.emailAddress}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="py-2">
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        if (isAdmin) navigate("/admin");
+                        else if (isOwner) navigate("/owner");
+                        else setShowHotelReg(true);
+                      }}
+                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 transition-colors w-full group"
+                    >
+                      <i className={`fas ${isAdmin ? 'fa-crown' : isOwner ? 'fa-tree' : 'fa-hotel'} text-green-500 group-hover:scale-110 transition-transform`}></i>
+                      <span className="font-medium">
+                        {isAdmin ? "Admin Panel" : isOwner ? "Dashboard" : "List Your Hotel"}
+                      </span>
+                    </button>
+                    
+                    <NavLink
+                      to="/my-bookings"
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        scrollTo(0, 0);
+                      }}
+                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-red-50 transition-colors group"
+                    >
+                      <i className="fas fa-calendar-check text-red-500 group-hover:scale-110 transition-transform"></i>
+                      <span className="font-medium">My Bookings</span>
+                    </NavLink>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <button
               onClick={openSignIn}
@@ -354,24 +421,20 @@ const Navbar = () => {
         <div className="flex items-center gap-3 md:hidden relative z-10">
           {isLoaded && clerkUser && (
             <>
-              {/* Clerk UserButton (Avatar) */}
               <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent p-0.5 w-10 h-10 flex items-center justify-center overflow-hidden">
                 <UserButton
                   appearance={{
                     elements: {
-                      userButtonAvatarBox: "!w-12 !h-12",
+                      userButtonAvatarBox: "!w-full !h-full",
                       userButtonImage: "!w-full !h-full",
-                      userButtonTrigger:
-                        "!p-0 !border-none !shadow-none focus:!shadow-none",
+                      userButtonTrigger: "!p-0 !border-none !shadow-none focus:!shadow-none",
                     },
                   }}
                 />
               </div>
-
-              {/* User Info (Name) */}
               <div className="flex flex-col items-start">
-                <p className="text-white font-semibold text-xs drop-shadow-md">
-                  {clerkUser.fullName || `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`}
+                <p className="text-white font-semibold text-xs drop-shadow-md truncate max-w-[100px]">
+                  {clerkUser.fullName || clerkUser.firstName}
                 </p>
               </div>
             </>
@@ -388,7 +451,7 @@ const Navbar = () => {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`fixed top-0 left-0 z-50 w-full h-screen bg-gradient-to-br from-red-600/95 via-green-600/95 to-red-600/95 backdrop-blur-xl flex flex-col items-center justify-center gap-6 font-bold text-white transition-all duration-500 md:hidden ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed top-0 left-0 z-[200] w-full h-screen bg-gradient-to-br from-red-600/95 via-green-600/95 to-red-600/95 backdrop-blur-xl flex flex-col items-center justify-center gap-6 font-bold text-white transition-all duration-500 md:hidden ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         {/* Close Button */}
@@ -420,12 +483,11 @@ const Navbar = () => {
               🎄
             </button>
           </div>
-          <div className="absolute inset-0 rounded-full blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 -z-10 bg-white"></div>
         </div>
 
         {/* Navigation Links */}
         {navLinks
-          .filter(navLink => !navLink.requireAuth || user) // Chỉ hiện My Bookings khi đã login
+          .filter(navLink => !navLink.requireAuth || user)
           .map((navLink) => (
             <NavLink
               key={navLink.name}
@@ -446,10 +508,8 @@ const Navbar = () => {
         {/* User Actions - Logged In */}
         {user && (
           <>
-            {/* Hiển thị thông tin người dùng với Clerk */}
             {isLoaded && clerkUser && (
               <div className="flex flex-col items-center mb-6 p-4">
-                {/* Avatar */}
                 <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-red-800 p-0.5 mb-2">
                   <img
                     src={clerkUser.imageUrl}
@@ -457,15 +517,9 @@ const Navbar = () => {
                     className="w-16 h-16 rounded-full object-cover"
                   />
                 </div>
-
-                {/* Tên người dùng */}
                 <p className="text-white font-bold text-xl">
-                  {clerkUser.fullName ||
-                    `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}` ||
-                    clerkUser.username ||
-                    clerkUser.primaryEmailAddress?.emailAddress}
+                  {clerkUser.fullName || clerkUser.firstName}
                 </p>
-
                 <p className="text-yellow-200 text-sm">Welcome back! 🎄</p>
               </div>
             )}
@@ -486,6 +540,19 @@ const Navbar = () => {
                   : "🎁 List Your Hotel"}
             </button>
           </>
+        )}
+
+        {/* Login Button - Not Logged In */}
+        {!user && (
+          <button
+            onClick={() => {
+              setIsMenuOpen(false);
+              openSignIn();
+            }}
+            className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-700 px-8 py-3 text-lg font-bold rounded-full shadow-lg hover:scale-105 transition-all mt-6"
+          >
+            🎅 Login
+          </button>
         )}
       </div>
     </>
