@@ -9,7 +9,7 @@ import hotelRouter from "./routes/hotelRoutes.js";
 import roomRouter from "./routes/roomRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
 import adminRouter from "./routes/adminRoutes.js";
-import clerkRouter from "./routes/clerkRoutes.js";
+import clerkWebhooks from "./controllers/clerkWebhooks.js";
 import connectCloudinary from "./configs/cloudinary.js";
 import { stripeWebhooks } from "./controllers/stripeWebhooks.js";
 import ratingRouter from "./routes/ratingRoutes.js";
@@ -45,7 +45,7 @@ app.use(clerkMiddleware());
 // API to listen to Clerk Webhooks
 app.use("/api/clerk", clerkWebhooks);
 
-app.get("/", (req, res) => Router("API is working"));
+app.get("/", (req, res) => res.send("API is working"));
 app.use("/api/user", userRouter);
 app.use("/api/hotels", hotelRouter);
 app.use("/api/rooms", roomRouter);
