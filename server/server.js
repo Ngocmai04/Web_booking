@@ -14,11 +14,14 @@ import connectCloudinary from "./configs/cloudinary.js";
 import { stripeWebhooks } from "./controllers/stripeWebhooks.js";
 import ratingRouter from './routes/ratingRoutes.js';
 
-connectDB();
-connectCloudinary();
+// Load environment variables
 dotenv.config();
 
 const app = express();
+
+// Initialize connections (they should handle connection pooling internally)
+connectDB();
+connectCloudinary();
 
 app.use(
   cors({
@@ -49,5 +52,11 @@ app.use("/api/bookings", bookingRouter);
 app.use("/api/admin", adminRouter);
 app.use('/api/ratings', ratingRouter);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Export the Express app for Vercel serverless
+export default app;
+
+// Only start server in non-serverless environment
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
