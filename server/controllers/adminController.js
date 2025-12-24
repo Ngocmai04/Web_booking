@@ -29,12 +29,11 @@ export const addUserAdmin = async (req, res) => {
       return res.json({ success: false, message: "Email already in use." });
     }
 
-    // Create user (note: password is usually set by Clerk, but we'll create without it for admin)
+    // Create user
     const user = await User.create({
       username,
       email,
       role,
-      isActive: true,
     });
 
     res.json({ success: true, message: "User added successfully.", user });
@@ -69,9 +68,9 @@ export const getUserById = async (req, res) => {
   }
 };
 
-// Khóa / Mở khóa tài khoản
-// PUT /api/admin/users/:id/toggle-active
-export const toggleUserActive = async (req, res) => {
+// Xóa người dùng
+// DELETE /api/admin/users/:id
+export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findById(id);
@@ -80,21 +79,45 @@ export const toggleUserActive = async (req, res) => {
       return res.json({ success: false, message: "User not found." });
     }
 
-    // Không cho phép khóa chính mình
+    // Không cho phép xóa chính mình
     if (user._id === req.user._id) {
       return res.json({
         success: false,
-        message: "You cannot lock your own account.",
+        message: "You cannot delete your own account.",
       });
     }
 
-    user.isActive = !user.isActive;
-    await user.save();
+    // Kiểm tra xem user có phải là hotel owner không
+    const ownedHotels = await Hotel.find({ owner: id });
+    
+    if (ownedHotels.length > 0) {
+      return res.json({
+        success: false,
+        message: `Cannot delete user. This user owns ${ownedHotels.length} hotel(s). Please reassign or delete the hotels first.`,
+      });
+    }
+
+    // Kiểm tra xem user có booking nào không
+    const userBookings = await Booking.find({ user: id });
+    
+    if (userBookings.length > 0) {
+      // Có thể chọn 1 trong 2 cách:
+      // Cách 1: Không cho xóa nếu có booking
+      // return res.json({
+      //   success: false,
+      //   message: `Cannot delete user. This user has ${userBookings.length} booking(s).`,
+      // });
+      
+      // Cách 2: Xóa luôn cả bookings (cẩn thận!)
+      await Booking.deleteMany({ user: id });
+    }
+
+    // Xóa user
+    await User.findByIdAndDelete(id);
 
     res.json({
       success: true,
-      message: user.isActive ? "Account unlocked." : "Account locked.",
-      user,
+      message: `User "${user.username}" has been deleted successfully.`,
     });
   } catch (error) {
     res.json({ success: false, message: error.message });
