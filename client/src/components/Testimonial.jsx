@@ -10,10 +10,29 @@ const Testimonial = () => {
     useEffect(() => {
         const fetchTestimonials = async () => {
             try {
-                const apiUrl = `${import.meta.env.VITE_BACKEND_URL}/api/ratings/testimonials/random`;
+                const backendUrl = import.meta.env.VITE_BACKEND_URL;
+                
+                if (!backendUrl) {
+                    console.error('VITE_BACKEND_URL is not defined');
+                    setError('Backend URL not configured');
+                    setLoading(false);
+                    return;
+                }
+
+                const apiUrl = `${backendUrl}/api/ratings/testimonials/random`;
                 console.log('Fetching from:', apiUrl);
 
-                const response = await fetch(apiUrl);
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
 
                 console.log('Response data:', data);
@@ -23,11 +42,13 @@ const Testimonial = () => {
                     setTestimonials(data.testimonials);
                 } else {
                     console.warn('No testimonials found or request not successful');
-                    setError('No testimonials available');
+                    // Không set error, chỉ để mảng rỗng
+                    setTestimonials([]);
                 }
             } catch (error) {
                 console.error('Error fetching testimonials:', error);
-                setError(error.message);
+                // Không hiển thị error, chỉ để mảng rỗng để UI vẫn render đẹp
+                setTestimonials([]);
             } finally {
                 setLoading(false);
             }
@@ -47,20 +68,9 @@ const Testimonial = () => {
         );
     }
 
-    if (error) {
-        return (
-            <div className='flex flex-col items-center px-6 md:px-16 lg:px-24 bg-gradient-to-b from-red-50 via-white to-green-50 pt-20 pb-30'>
-                <p className='text-center text-red-500'>Error: {error}</p>
-            </div>
-        );
-    }
-
-    if (testimonials.length === 0) {
-        return (
-            <div className='flex flex-col items-center px-6 md:px-16 lg:px-24 bg-gradient-to-b from-red-50 via-white to-green-50 pt-20 pb-30'>
-                <p className='text-center text-gray-500'>No testimonials available yet</p>
-            </div>
-        );
+    // Không hiển thị section nếu không có testimonials hoặc có lỗi
+    if (error || testimonials.length === 0) {
+        return null;
     }
 
     return (
