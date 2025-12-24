@@ -5,12 +5,16 @@ import { NavLink } from "react-router-dom";
 const Sidebar = () => {
   const sidebarLinks = [
     { name: "Dashboard", path: "/admin", icon: assets.dashboardIcon },
-    { name: "Quản lý Users", path: "/admin/users", icon: assets.listIcon },
-    { name: "Quản lý Hotels", path: "/admin/hotels", icon: assets.addIcon },
-    { name: "Chờ duyệt", path: "/admin/pending-hotels", icon: assets.addIcon },
-    { name: "Quản lý Rooms", path: "/admin/rooms", icon: assets.listIcon },
+    { name: "User Management", path: "/admin/users", icon: assets.listIcon },
+    { name: "Hotel Management", path: "/admin/hotels", icon: assets.addIcon },
     {
-      name: "Quản lý Bookings",
+      name: "Pending Hotels",
+      path: "/admin/pending-hotels",
+      icon: assets.addIcon,
+    },
+    { name: "Room Management", path: "/admin/rooms", icon: assets.listIcon },
+    {
+      name: "Booking Management",
       path: "/admin/bookings",
       icon: assets.listIcon,
     },
@@ -32,7 +36,9 @@ const Sidebar = () => {
           }
         >
           <img className="min-h-6 min-w-6" src={item.icon} alt={item.name} />
-          <p className="md:block hidden text-center">{item.name}</p>
+          <p className="md:block hidden text-center whitespace-nowrap">
+            {item.name}
+          </p>
         </NavLink>
       ))}
     </div>

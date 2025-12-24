@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
+import AddUserAdminForm from "./AddUserAdminForm";
 
 const ManageUsers = () => {
   const { axios, getToken } = useAppContext();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); // all, user, hotelOwner, admin
+  const [filter, setFilter] = useState("all");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchUsers = async () => {
     try {
@@ -74,6 +78,14 @@ const ManageUsers = () => {
     return user.role === filter;
   });
 
+  // Pagination
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedUsers = filteredUsers.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -85,29 +97,55 @@ const ManageUsers = () => {
   return (
     <div>
       <h1 className="text-2xl font-semibold text-gray-800 mb-6">
-        👥 Quản lý Người dùng
+        👥 User Management
       </h1>
 
-      {/* Filter */}
-      <div className="mb-6 flex gap-2 flex-wrap">
-        {["all", "user", "hotelOwner", "admin"].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-              filter === f
-                ? "bg-red-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            {f === "all"
-              ? "Tất cả"
-              : f === "hotelOwner"
-              ? "Hotel Owner"
-              : f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
-        ))}
+      {/* Filter and Add Button */}
+      <div className="mb-6 flex gap-2 flex-wrap justify-between items-center">
+        <div className="flex gap-2 flex-wrap">
+          {["all", "user", "hotelOwner", "admin"].map((f) => (
+            <button
+              key={f}
+              onClick={() => {
+                setFilter(f);
+                setCurrentPage(1);
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                filter === f
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              {f === "all"
+                ? "All"
+                : f === "hotelOwner"
+                ? "Hotel Owner"
+                : f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition font-medium"
+        >
+          {showAddForm ? "Cancel" : "+ Add New User"}
+        </button>
       </div>
+
+      {/* Add User Form */}
+      {showAddForm && (
+        <div className="mb-6 bg-white rounded-xl shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Add New User
+          </h2>
+          <AddUserAdminForm
+            onSuccess={() => {
+              setShowAddForm(false);
+              fetchUsers();
+            }}
+          />
+        </div>
+      )}
 
       {/* Users Table */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -121,16 +159,12 @@ const ManageUsers = () => {
                 </th>
                 <th className="py-4 px-4 text-gray-600 font-medium">Email</th>
                 <th className="py-4 px-4 text-gray-600 font-medium">Role</th>
-                <th className="py-4 px-4 text-gray-600 font-medium">
-                  Trạng thái
-                </th>
-                <th className="py-4 px-4 text-gray-600 font-medium">
-                  Hành động
-                </th>
+                <th className="py-4 px-4 text-gray-600 font-medium">Status</th>
+                <th className="py-4 px-4 text-gray-600 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => (
+              {paginatedUsers.map((user) => (
                 <tr key={user._id} className="border-b hover:bg-gray-50">
                   <td className="py-4 px-4">
                     <img
@@ -170,7 +204,7 @@ const ManageUsers = () => {
                                                 : "bg-red-100 text-red-700"
                                             }`}
                     >
-                      {user.isActive ? "✓ Hoạt động" : "✗ Đã khóa"}
+                      {user.isActive ? "Active" : "Locked"}
                     </span>
                   </td>
                   <td className="py-4 px-4">
@@ -183,15 +217,15 @@ const ManageUsers = () => {
                                                     : "bg-green-100 text-green-600 hover:bg-green-200"
                                                 }`}
                     >
-                      {user.isActive ? "🔒 Khóa" : "🔓 Mở khóa"}
+                      {user.isActive ? "Lock" : "Unlock"}
                     </button>
                   </td>
                 </tr>
               ))}
-              {filteredUsers.length === 0 && (
+              {paginatedUsers.length === 0 && (
                 <tr>
                   <td colSpan="6" className="py-8 text-center text-gray-500">
-                    Không có người dùng nào
+                    No users found
                   </td>
                 </tr>
               )}
@@ -200,9 +234,47 @@ const ManageUsers = () => {
         </div>
       </div>
 
-      <p className="mt-4 text-sm text-gray-500">
-        Tổng: {filteredUsers.length} người dùng
-      </p>
+      {/* Pagination */}
+      <div className="mt-6 flex justify-between items-center">
+        <p className="text-sm text-gray-500">
+          Showing {startIndex + 1} to{" "}
+          {Math.min(startIndex + itemsPerPage, filteredUsers.length)} of{" "}
+          {filteredUsers.length} users
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                  page === currentPage
+                    ? "bg-red-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() =>
+              setCurrentPage(Math.min(totalPages, currentPage + 1))
+            }
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
