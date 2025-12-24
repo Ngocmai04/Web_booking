@@ -9,7 +9,7 @@ import hotelRouter from "./routes/hotelRoutes.js";
 import roomRouter from "./routes/roomRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
 import adminRouter from "./routes/adminRoutes.js";
-import clerkWebhooks from "./controllers/clerkWebhooks.js";
+import clerkRouter from "./routes/clerkRoutes.js";
 import connectCloudinary from "./configs/cloudinary.js";
 import { stripeWebhooks } from "./controllers/stripeWebhooks.js";
 import ratingRouter from "./routes/ratingRoutes.js";
@@ -22,11 +22,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "https://web-booking-9vxh.vercel.app",
-    "https://web-booking-eeb1pa7di-ngocmai04s-projects.vercel.app",
-  ],
+  origin: [process.env.CLIENT_URI || "http://localhost:5173"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -49,7 +45,7 @@ app.use(clerkMiddleware());
 // API to listen to Clerk Webhooks
 app.use("/api/clerk", clerkWebhooks);
 
-app.get("/", (req, res) => res.send("API is working"));
+app.get("/", (req, res) => Router("API is working"));
 app.use("/api/user", userRouter);
 app.use("/api/hotels", hotelRouter);
 app.use("/api/rooms", roomRouter);
