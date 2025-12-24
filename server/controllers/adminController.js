@@ -494,30 +494,6 @@ export const getStats = async (req, res) => {
       status: "cancelled",
     });
 
-    // Tổng doanh thu
-    const revenueResult = await Booking.aggregate([
-      { $match: { status: { $in: ["confirmed", "pending"] }, isPaid: true } },
-      { $group: { _id: null, total: { $sum: "$totalPrice" } } },
-    ]);
-    const totalRevenue = revenueResult[0]?.total || 0;
-
-    // Doanh thu theo tháng (12 tháng gần nhất)
-    const monthlyRevenue = await Booking.aggregate([
-      { $match: { status: { $in: ["confirmed", "pending"] } } },
-      {
-        $group: {
-          _id: {
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" },
-          },
-          revenue: { $sum: "$totalPrice" },
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { "_id.year": -1, "_id.month": -1 } },
-      { $limit: 12 },
-    ]);
-
     res.json({
       success: true,
       stats: {
@@ -538,10 +514,6 @@ export const getStats = async (req, res) => {
           confirmed: confirmedBookings,
           cancelled: cancelledBookings,
           pending: totalBookings - confirmedBookings - cancelledBookings,
-        },
-        revenue: {
-          total: totalRevenue,
-          monthly: monthlyRevenue,
         },
       },
     });
