@@ -6,7 +6,9 @@ const ManageBookings = () => {
   const { axios, getToken, currency } = useAppContext();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); // all, pending, confirmed, cancelled
+  const [filter, setFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchBookings = async () => {
     try {
@@ -54,6 +56,13 @@ const ManageBookings = () => {
     return booking.status === filter;
   });
 
+  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedBookings = filteredBookings.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
   const getStatusStyle = (status) => {
     switch (status) {
       case "confirmed":
@@ -87,20 +96,23 @@ const ManageBookings = () => {
   return (
     <div>
       <h1 className="text-2xl font-semibold text-gray-800 mb-6">
-        Quản lý Đặt phòng
+        Booking Management
       </h1>
 
       {/* Filter */}
       <div className="mb-6 flex gap-2 flex-wrap">
         {[
-          { key: "all", label: "Tất cả" },
+          { key: "all", label: "All" },
           { key: "pending", label: "⏳ Pending" },
           { key: "confirmed", label: "✓ Confirmed" },
           { key: "cancelled", label: "✗ Cancelled" },
         ].map((f) => (
           <button
             key={f.key}
-            onClick={() => setFilter(f.key)}
+            onClick={() => {
+              setFilter(f.key);
+              setCurrentPage(1);
+            }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
               filter === f.key
                 ? "bg-red-600 text-white"
@@ -120,31 +132,23 @@ const ManageBookings = () => {
               <tr>
                 <th className="py-4 px-4 text-gray-600 font-medium">ID</th>
                 <th className="py-4 px-4 text-gray-600 font-medium">
-                  Khách hàng
+                  Customer
                 </th>
-                <th className="py-4 px-4 text-gray-600 font-medium">
-                  Khách sạn
-                </th>
-                <th className="py-4 px-4 text-gray-600 font-medium">Phòng</th>
+                <th className="py-4 px-4 text-gray-600 font-medium">Hotel</th>
+                <th className="py-4 px-4 text-gray-600 font-medium">Room</th>
                 <th className="py-4 px-4 text-gray-600 font-medium">
                   Check-in/out
                 </th>
                 <th className="py-4 px-4 text-gray-600 font-medium">
-                  Tổng tiền
+                  Total Price
                 </th>
-                <th className="py-4 px-4 text-gray-600 font-medium">
-                  Thanh toán
-                </th>
-                <th className="py-4 px-4 text-gray-600 font-medium">
-                  Trạng thái
-                </th>
-                <th className="py-4 px-4 text-gray-600 font-medium">
-                  Hành động
-                </th>
+                <th className="py-4 px-4 text-gray-600 font-medium">Payment</th>
+                <th className="py-4 px-4 text-gray-600 font-medium">Status</th>
+                <th className="py-4 px-4 text-gray-600 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredBookings.map((booking) => (
+              {paginatedBookings.map((booking) => (
                 <tr key={booking._id} className="border-b hover:bg-gray-50">
                   <td className="py-4 px-4 text-sm text-gray-500">
                     ...{booking._id.slice(-6)}
@@ -174,13 +178,13 @@ const ManageBookings = () => {
                     <p>
                       {" "}
                       {new Date(booking.checkInDate).toLocaleDateString(
-                        "vi-VN"
+                        "en-US"
                       )}
                     </p>
                     <p>
                       {" "}
                       {new Date(booking.checkOutDate).toLocaleDateString(
-                        "vi-VN"
+                        "en-US"
                       )}
                     </p>
                   </td>
@@ -199,9 +203,7 @@ const ManageBookings = () => {
                                                     : "bg-gray-100 text-gray-700"
                                                 }`}
                       >
-                        {booking.isPaid
-                          ? "Đã thanh toán"
-                          : "Chưa thanh toán"}
+                        {booking.isPaid ? "Paid" : "Unpaid"}
                       </span>
                     </div>
                   </td>
@@ -229,10 +231,10 @@ const ManageBookings = () => {
                   </td>
                 </tr>
               ))}
-              {filteredBookings.length === 0 && (
+              {paginatedBookings.length === 0 && (
                 <tr>
                   <td colSpan="9" className="py-8 text-center text-gray-500">
-                    Không có booking nào
+                    No bookings found
                   </td>
                 </tr>
               )}
@@ -241,9 +243,47 @@ const ManageBookings = () => {
         </div>
       </div>
 
-      <p className="mt-4 text-sm text-gray-500">
-        Tổng: {filteredBookings.length} booking
-      </p>
+      {/* Pagination */}
+      <div className="mt-6 flex justify-between items-center">
+        <p className="text-sm text-gray-500">
+          Showing {Math.min(startIndex + 1, filteredBookings.length)} to{" "}
+          {Math.min(startIndex + itemsPerPage, filteredBookings.length)} of{" "}
+          {filteredBookings.length} bookings
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                  page === currentPage
+                    ? "bg-red-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() =>
+              setCurrentPage(Math.min(totalPages, currentPage + 1))
+            }
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

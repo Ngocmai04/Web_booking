@@ -13,9 +13,7 @@ const Navbar = () => {
         </span>
       </Link>
       <div className="flex items-center gap-4">
-        <span className="text-sm text-gray-600 hidden md:block">
-          Quản trị viên
-        </span>
+        <span className="text-sm text-gray-600 hidden md:block">Admin</span>
         <UserButton />
       </div>
     </div>
