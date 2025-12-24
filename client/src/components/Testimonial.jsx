@@ -59,7 +59,7 @@ const Testimonial = () => {
 
     if (loading) {
         return (
-            <div className='flex flex-col items-center px-6 md:px-16 lg:px-24 bg-gradient-to-b from-red-50 via-white to-green-50 pt-20 pb-30'>
+            <div className='flex flex-col items-center px-6 md:px-16 lg:px-24 bg-gradient-to-b from-red-50 via-white to-green-50 pt-20 pb-32'>
                 <div className="flex items-center gap-3">
                     <div className="w-6 h-6 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
                     <p className='text-center text-gray-600 font-semibold'>Loading testimonials...</p>
@@ -74,7 +74,7 @@ const Testimonial = () => {
     }
 
     return (
-        <div className='relative flex flex-col items-center px-6 md:px-16 lg:px-24 bg-gradient-to-b from-red-50 via-white to-green-50 pt-20 pb-30 overflow-hidden'>
+        <div className='relative flex flex-col items-center px-6 md:px-16 lg:px-24 bg-gradient-to-b from-red-50 via-white to-green-50 pt-20 pb-32 overflow-hidden'>
             {/* Animated snowflakes background */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 {[...Array(20)].map((_, i) => (
@@ -141,7 +141,7 @@ const Testimonial = () => {
 
                         <div className='relative z-10'>
                             <div className='flex items-center gap-4 mb-6'>
-                                <div className='relative w-16 h-16 rounded-full border-3 border-red-300 shadow-lg bg-gradient-to-br from-red-500 via-red-400 to-pink-400 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 group-hover:rotate-6'>
+                                <div className='relative w-16 h-16 rounded-full border-[3px] border-red-300 shadow-lg bg-gradient-to-br from-red-500 via-red-400 to-pink-400 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 group-hover:rotate-6'>
                                     <span className='text-white font-bold text-xl'>
                                         {(testimonial.userInfo?.username || 'G')[0].toUpperCase()}
                                     </span>
@@ -206,7 +206,7 @@ const Testimonial = () => {
                 <span className="animate-bounce" style={{ animationDelay: '0.6s' }}>🎁</span>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 @keyframes fadeInUp {
                     from {
                         opacity: 0;
