@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Title from './Title'
 
+const MotionDiv = motion.div
+const MotionSpan = motion.span
+
 /* ===== Animation variants ===== */
 const sectionFade = {
   hidden: { opacity: 0, y: 60 },
@@ -85,7 +88,7 @@ const Testimonial = () => {
   }
 
   return (
-    <motion.div
+    <MotionDiv
       className="relative flex flex-col items-center px-6 md:px-16 lg:px-24 bg-gradient-to-b from-red-50 via-white to-green-50 pt-20 pb-30 overflow-hidden"
       variants={sectionFade}
       initial="hidden"
@@ -93,7 +96,7 @@ const Testimonial = () => {
       viewport={{ once: true, amount: 0.2 }}
     >
       {/* Header decoration */}
-      <motion.div
+      <MotionDiv
         className="relative mb-8 flex items-center justify-center gap-4"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -102,15 +105,15 @@ const Testimonial = () => {
         <span className="text-4xl">🎄</span>
         <span className="text-5xl text-yellow-400">⭐</span>
         <span className="text-4xl">🎁</span>
-      </motion.div>
+      </MotionDiv>
 
       <Title
         title="What Our Guests Say"
-        subTitle="Discover why discerning travelers consistently choose QuickStay for their exclusive holiday accommodations and unforgettable Christmas experiences around the world."
+subTitle="Discover why discerning travelers consistently choose QuickStay for their exclusive holiday accommodations and unforgettable Christmas experiences around the world."
       />
 
       {/* Testimonials grid */}
-      <motion.div
+      <MotionDiv
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16 w-full relative z-10"
         variants={staggerGrid}
         initial="hidden"
@@ -118,7 +121,7 @@ const Testimonial = () => {
         viewport={{ once: true }}
       >
         {testimonials.map((testimonial) => (
-          <motion.div
+          <MotionDiv
             key={testimonial._id}
             variants={cardFade}
             whileHover={{ y: -8, scale: 1.02 }}
@@ -143,7 +146,7 @@ const Testimonial = () => {
             {/* Rating */}
             <div className="flex items-center gap-2 mb-6 bg-yellow-50 p-3 rounded-xl">
               {[...Array(5)].map((_, i) => (
-                <motion.span
+                <MotionSpan
                   key={i}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -155,7 +158,7 @@ const Testimonial = () => {
                   }`}
                 >
                   ★
-                </motion.span>
+                </MotionSpan>
               ))}
               <span className="ml-2 font-semibold text-gray-700">
                 {testimonial.ratings.overall}/5
@@ -170,20 +173,20 @@ const Testimonial = () => {
             <div className="mt-6 text-center opacity-60">
               <span className="text-2xl">🎄</span>
             </div>
-          </motion.div>
+          </MotionDiv>
         ))}
-      </motion.div>
+      </MotionDiv>
 
       {/* Footer decoration */}
-      <motion.div
+      <MotionDiv
         className="mt-16 flex gap-3 text-4xl"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
+transition={{ delay: 0.5 }}
       >
         🎅 🦌 ⛄ 🎁
-      </motion.div>
-    </motion.div>
+      </MotionDiv>
+    </MotionDiv>
   )
 }
 
