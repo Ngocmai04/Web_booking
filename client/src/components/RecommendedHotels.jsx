@@ -4,6 +4,8 @@ import { useAppContext } from '../context/AppContext'
 import Title from './Title'
 import HotelCard from './HotelCard'
 
+const MotionDiv = motion.div
+
 // Animation variants
 const containerVariants = {
   hidden: { opacity: 0, y: 50 },
@@ -52,7 +54,7 @@ const RecommendedHotels = () => {
   if (recommended.length === 0) return null
 
   return (
-    <motion.div
+    <MotionDiv
       className="flex flex-col items-center px-6 md:px-16 lg:px-24 py-20 bg-gradient-to-b from-red-50 to-green-50"
       variants={containerVariants}
       initial="hidden"
@@ -60,31 +62,31 @@ const RecommendedHotels = () => {
       viewport={{ once: true, amount: 0.2 }}
     >
       {/* Decorative Christmas elements */}
-      <motion.div
+      <MotionDiv
         className="text-4xl mb-6 opacity-70"
         variants={cardVariants}
       >
         🎄 ❄️ 🎁
-      </motion.div>
+      </MotionDiv>
 
-      <motion.div variants={cardVariants}>
+      <MotionDiv variants={cardVariants}>
         <Title
           title="🎅 Recommended Christmas Stays"
           subTitle="Discover our handpicked selection of exceptional properties perfect for your holiday season, offering festive luxury and unforgettable experiences."
         />
-      </motion.div>
+      </MotionDiv>
 
-      <motion.div
+      <MotionDiv
         className="flex flex-wrap items-center justify-center gap-6 mt-16"
         variants={containerVariants}
       >
         {recommended.slice(0, 4).map((room) => (
-          <motion.div key={room._id} variants={cardVariants}>
+          <MotionDiv key={room._id} variants={cardVariants}>
             <HotelCard room={room} />
-          </motion.div>
+          </MotionDiv>
         ))}
-      </motion.div>
-    </motion.div>
+      </MotionDiv>
+    </MotionDiv>
   )
 }
 

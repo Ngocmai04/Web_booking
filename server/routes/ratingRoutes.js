@@ -12,7 +12,7 @@ import { protect } from '../middleware/authMiddleware.js';
 const ratingRouter = express.Router();
 
 // Public routes - Không cần authentication
-ratingRouter.get('/', getRating);
+
 ratingRouter.get('/testimonials/random', getRandomRatings);
 ratingRouter.get('/average', getAverageRatings);
 
@@ -20,5 +20,6 @@ ratingRouter.get('/average', getAverageRatings);
 ratingRouter.post('/', protect, createRating);
 ratingRouter.put('/:id', protect, updateRating);
 ratingRouter.delete('/:id', protect, deleteRating);
+ratingRouter.get('/', getRating);
 
 export default ratingRouter;
