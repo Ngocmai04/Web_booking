@@ -49,27 +49,27 @@ const ManageHotels = () => {
     }
   };
 
-  const deleteHotel = async (hotelId) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this hotel permanently? All rooms will also be deleted."
-      )
-    )
-      return;
-    try {
-      const { data } = await axios.delete(`/api/admin/hotels/${hotelId}`, {
-        headers: { Authorization: `Bearer ${await getToken()}` },
-      });
-      if (data.success) {
-        toast.success(data.message);
-        fetchHotels();
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
+  // const deleteHotel = async (hotelId) => {
+  //   if (
+  //     !window.confirm(
+  //       "Are you sure you want to delete this hotel permanently? All rooms will also be deleted."
+  //     )
+  //   )
+  //     return;
+  //   try {
+  //     const { data } = await axios.delete(`/api/admin/hotels/${hotelId}`, {
+  //       headers: { Authorization: `Bearer ${await getToken()}` },
+  //     });
+  //     if (data.success) {
+  //       toast.success(data.message);
+  //       fetchHotels();
+  //     } else {
+  //       toast.error(data.message);
+  //     }
+  //   } catch (error) {
+  //     toast.error(error.message);
+  //   }
+  // };
 
   useEffect(() => {
     fetchHotels();
@@ -235,7 +235,7 @@ const ManageHotels = () => {
               </tr>
             </thead>
             <tbody>
-              {paginatedHotels.map((hotel, index) => (
+              {paginatedHotels.map((hotel) => (
                 <tr key={hotel._id} 
                     className="border-b border-gray-100 hover:bg-gradient-to-r hover:from-red-50 hover:to-green-50 
                              transition-all duration-300 group">

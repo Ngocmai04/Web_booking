@@ -5,7 +5,6 @@ import AddUserAdminForm from "./AddUserAdminForm";
 import {
   Users,
   User,
-  UserPlus,
   Shield,
   Building2,
   Star,
@@ -13,13 +12,11 @@ import {
   Plus,
   Mail,
   Image as ImageIcon,
-  Settings,
-  Trash2,
-  ChevronLeft,
-  ChevronRight,
   List,
   TreePine,
   Snowflake,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 const ManageUsers = () => {
@@ -28,7 +25,6 @@ const ManageUsers = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [deletingUserId, setDeletingUserId] = useState(null);
   const itemsPerPage = 10;
 
   const fetchUsers = async () => {
@@ -45,34 +41,6 @@ const ManageUsers = () => {
       toast.error(error.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const deleteUser = async (userId) => {
-    // Xác nhận trước khi xóa
-    const user = users.find(u => u._id === userId);
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa user "${user?.username}"? Hành động này không thể hoàn tác!`)) {
-      return;
-    }
-
-    setDeletingUserId(userId);
-    try {
-      const { data } = await axios.delete(
-        `/api/admin/users/${userId}`,
-        {
-          headers: { Authorization: `Bearer ${await getToken()}` },
-        }
-      );
-      if (data.success) {
-        toast.success(data.message);
-        fetchUsers();
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setDeletingUserId(null);
     }
   };
 
@@ -175,7 +143,7 @@ const ManageUsers = () => {
             </button>
           ))}
         </div>
-      </div>
+        </div>
 
       {/* Users Table */}
       <div
@@ -212,11 +180,6 @@ const ManageUsers = () => {
                 <th className="py-4 px-4 text-gray-700 font-bold">
                   <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4" /> Role
-                  </div>
-                </th>
-                <th className="py-4 px-4 text-gray-700 font-bold">
-                  <div className="flex items-center gap-2">
-                    <Settings className="w-4 h-4" /> Actions
                   </div>
                 </th>
               </tr>
@@ -263,38 +226,16 @@ const ManageUsers = () => {
                                    : "bg-gradient-to-r from-gray-400 to-gray-500 text-white border-gray-300"
                                }`}
                     >
-                      <option value="user" >👤 User</option>
+                      <option value="user">👤 User</option>
                       <option value="hotelOwner">🏨 Hotel Owner</option>
                       <option value="admin">⭐ Admin</option>
                     </select>
-                  </td>
-                  <td className="py-4 px-4">
-                    <button
-                      onClick={() => deleteUser(user._id)}
-                      disabled={deletingUserId === user._id}
-                      className="px-5 py-2 rounded-xl text-sm font-bold transition-all duration-300
-                               transform hover:scale-110 hover:shadow-xl border-2 flex items-center gap-2
-                               bg-gradient-to-r from-red-500 to-pink-500 text-white border-red-300 
-                               hover:from-red-600 hover:to-pink-600
-                               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                    >
-                      {deletingUserId === user._id ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                          Đang xóa...
-                        </>
-                      ) : (
-                        <>
-                          <Trash2 className="w-4 h-4" /> Xóa
-                        </>
-                      )}
-                    </button>
                   </td>
                 </tr>
               ))}
               {paginatedUsers.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="py-12 text-center">
+                  <td colSpan="4" className="py-12 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <span className="text-7xl opacity-50">🎅</span>
                       <p className="text-gray-500 text-xl font-semibold">

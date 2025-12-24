@@ -49,9 +49,9 @@ const Layout = () => {
       </div>
 
       {/* Main Content Area with Sidebar and Content */}
-      <div className="flex flex-1 pt-16 relative z-10 overflow-hidden">
+      <div className="flex flex-1 pt-20 relative z-10 overflow-hidden">
         {/* Fixed Sidebar */}
-        <div className="fixed left-0 top-16 bottom-0 overflow-y-auto">
+        <div className="fixed left-0 top-20 bottom-0 overflow-y-auto">
           <Sidebar />
         </div>
 
