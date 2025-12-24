@@ -46,6 +46,9 @@ app.use(express.json());
 app.use(clerkMiddleware());
 
 // 5. Routes
+app.get("/", (req, res) => {
+  res.status(200).send("Backend is running");
+});
 app.use("/api/clerk", clerkWebhooks);
 app.use("/api/user", userRouter);
 app.use("/api/hotels", hotelRouter);
