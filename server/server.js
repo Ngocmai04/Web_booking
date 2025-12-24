@@ -20,42 +20,33 @@ dotenv.config();
 
 const app = express();
 
-// CORS configuration
+// 1. CORS
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        "https://hotel-booking-iota-weld.vercel.app",
-        "http://localhost:5173",
-      ];
-
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: [
+      "https://hotel-booking-iota-weld.vercel.app",
+      "http://localhost:5173",
+    ],
     credentials: true,
   })
 );
-
 app.options(/.*/, cors());
 
-// API to listen to Stripe Webhooks
+// 2. Stripe webhook
 app.post(
   "/api/stripe",
   express.raw({ type: "application/json" }),
   stripeWebhooks
 );
 
-// Middleware to parse JSON
+// 3. Body parser
 app.use(express.json());
+
+// 4. Auth
 app.use(clerkMiddleware());
 
-// API to listen to Clerk Webhooks
+// 5. Routes
 app.use("/api/clerk", clerkWebhooks);
-
-app.get("/", (req, res) => res.send("API is working"));
 app.use("/api/user", userRouter);
 app.use("/api/hotels", hotelRouter);
 app.use("/api/rooms", roomRouter);
