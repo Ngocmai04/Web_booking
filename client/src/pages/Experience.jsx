@@ -483,7 +483,7 @@ const Experience = () => {
             </section>
 
             {/* Animations */}
-            <style jsx>{`
+            <style>{`
                 @keyframes fadeInUp {
                     from {
                         opacity: 0;

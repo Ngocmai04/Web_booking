@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { assets } from "../assets/assets";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useUser, useClerk, UserButton } from "@clerk/clerk-react";
@@ -68,6 +68,8 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const navbarRef = useRef(null);
+
   const location = useLocation();
 
   const isHomePage = location.pathname === "/";
@@ -109,6 +111,23 @@ const Navbar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showUserMenu]);
+
+  useEffect(() => {
+  const updateNavbarHeight = () => {
+    if (navbarRef.current) {
+      const height = navbarRef.current.offsetHeight;
+      document.documentElement.style.setProperty(
+        "--navbar-height",
+        `${height}px`
+      );
+    }
+  };
+
+  updateNavbarHeight();
+  window.addEventListener("resize", updateNavbarHeight);
+
+  return () => window.removeEventListener("resize", updateNavbarHeight);
+}, [isScrolled]);
 
   return (
     <>
@@ -161,6 +180,7 @@ const Navbar = () => {
       `}</style>
 
       <nav
+      ref={navbarRef}
         className={`fixed top-0 left-0 w-full flex items-center justify-between px-4 md:px-16 lg:px-24 xl:px-32 transition-all duration-500 z-[100] overflow-visible
         ${isScrolled
             ? "bg-gradient-to-r from-red-700 via-green-700 to-red-700 shadow-2xl backdrop-blur-lg py-3 md:py-4 border-b-2 border-yellow-400"
