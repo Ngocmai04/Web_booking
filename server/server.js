@@ -26,13 +26,17 @@ app.use(
     origin: [
       "https://hotel-booking-iota-weld.vercel.app",
       "http://localhost:5173",
+      "https://web-booking-eeb1pa7di-ngocmai04s-projects.vercel.app",
     ],
     credentials: true,
   })
 );
 app.options(/.*/, cors());
 
-// 2. Stripe webhook
+app.use(cors(corsOptions));
+app.options("/", cors(corsOptions));
+
+// API to listen to Stripe Webhooks
 app.post(
   "/api/stripe",
   express.raw({ type: "application/json" }),

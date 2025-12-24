@@ -1,156 +1,205 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faFacebook,
+  faInstagram,
+  faTwitter,
+  faLinkedin,
+} from "@fortawesome/free-brands-svg-icons";
+import {
+  faPaperPlane,
+  faGift,
+  faHeadset,
+  faEnvelopeOpenText,
+} from "@fortawesome/free-solid-svg-icons";
 import { assets } from "../assets/assets";
 
 const Footer = () => {
   return (
-    <div
-      className="pt-10 px-6 md:px-16 lg:px-24 xl:px-32 text-white relative"
+    <footer
+      className="pt-14 px-6 md:px-16 lg:px-24 xl:px-32 text-white"
       style={{
-        background: "linear-gradient(180deg, #8b0000 0%, #4a0000 100%)",
+        background:
+          "linear-gradient(180deg, #8b0000 0%, #6b0000 60%, #2a0000 100%)",
       }}
     >
-      {/* ❄️ Snow glow border top */}
-      <div
-        className="absolute top-0 left-0 w-full h-[40px]"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 70%)",
-          filter: "blur(20px)",
-        }}
-      ></div>
-
-      <div className="flex flex-wrap justify-between gap-12 md:gap-6 relative z-10">
-        {/* ===== Brand Info ===== */}
+      <div className="flex flex-wrap justify-between gap-12">
+        {/* ===== Brand ===== */}
         <div className="max-w-80">
-          <img
-            src={assets.logo}
-            alt="logo"
-            className="mb-4 h-16 text-white"
-          />
-          <p className="text-sm opacity-90">
-            Discover magical places to stay this holiday season — from cozy
-            cabins to luxurious winter resorts.
+          <img src={assets.logo} alt="logo" className="mb-4 h-16" />
+
+          <p className="text-sm opacity-90 leading-relaxed">
+            Discover magical places to stay this Christmas — cozy cabins, snowy
+            retreats, and luxury winter resorts.
           </p>
 
-          <div className="flex items-center gap-3 mt-4">
-            <img
-              src={assets.instagramIcon}
-              alt="instagram"
-              className="w-6 invert hover:scale-110 transition"
-            />
-            <img
-              src={assets.facebookIcon}
-              alt="facebook"
-              className="w-6 invert hover:scale-110 transition"
-            />
-            <img
-              src={assets.twitterIcon}
-              alt="twitter"
-              className="w-6 invert hover:scale-110 transition"
-            />
-            <img
-              src={assets.linkendinIcon}
-              alt="linkedin"
-              className="w-6 invert hover:scale-110 transition"
-            />
+          <div className="flex gap-5 mt-5 text-xl">
+            <a href="https://www.instagram.com/dtks.luv/" className="hover:text-green-400 transition">
+              <FontAwesomeIcon icon={faInstagram} />
+            </a>
+            <a href="https://www.facebook.com/dtks.luv" className="hover:text-green-400 transition">
+              <FontAwesomeIcon icon={faFacebook} />
+            </a>
+            <a href="https://x.com/dtks_luv?s=21" className="hover:text-green-400 transition">
+              <FontAwesomeIcon icon={faTwitter} />
+            </a>
+            <a href="#" className="hover:text-green-400 transition">
+              <FontAwesomeIcon icon={faLinkedin} />
+            </a>
           </div>
         </div>
 
         {/* ===== Company ===== */}
         <div>
-          <p className="font-playfair text-lg text-white drop-shadow-lg">
-            🎁 COMPANY
+          <p className="flex items-center gap-2 font-playfair text-lg mb-4">
+            <FontAwesomeIcon icon={faGift} className="text-green-400" />
+            COMPANY
           </p>
-          <ul className="mt-3 flex flex-col gap-2 text-sm">
-            {["About", "Careers", "Press", "Blog", "Partners"].map((text) => (
-              <li key={text}>
-                <a
-                  href="#"
-                  className="hover:text-green-300 transition-colors"
-                >
-                  {text}
-                </a>
-              </li>
-            ))}
+          <ul className="space-y-2 text-sm">
+            <li>
+              <Link to="/about" className="hover:text-green-300">
+                About Us
+              </Link>
+            </li>
+            <li>
+              <Link to="/careers" className="hover:text-green-300">
+                Careers
+              </Link>
+            </li>
+            <li>
+              <Link to="/blog" className="hover:text-green-300">
+                Blog
+              </Link>
+            </li>
+            <li>
+              <Link to="/partners" className="hover:text-green-300">
+                Partners
+              </Link>
+            </li>
           </ul>
         </div>
 
         {/* ===== Support ===== */}
         <div>
-          <p className="font-playfair text-lg text-white drop-shadow-lg">
-            🎄 SUPPORT
+          <p className="flex items-center gap-2 font-playfair text-lg mb-4">
+            <FontAwesomeIcon icon={faHeadset} className="text-green-400" />
+            SUPPORT
           </p>
-          <ul className="mt-3 flex flex-col gap-2 text-sm">
-            {[
-              "Help Center",
-              "Safety Information",
-              "Cancellation Options",
-              "Contact Us",
-              "Accessibility",
-            ].map((text) => (
-              <li key={text}>
-                <a
-                  href="#"
-                  className="hover:text-green-300 transition-colors"
-                >
-                  {text}
-                </a>
-              </li>
-            ))}
+          <ul className="space-y-2 text-sm">
+            <li>
+              <Link to="/help" className="hover:text-green-300">
+                Help Center
+              </Link>
+            </li>
+            <li>
+              <Link to="/contact" className="hover:text-green-300">
+                Contact Us
+              </Link>
+            </li>
+            <li>
+              <Link to="/cancellation" className="hover:text-green-300">
+                Cancellation
+              </Link>
+            </li>
+            <li>
+              <Link to="/accessibility" className="hover:text-green-300">
+                Accessibility
+              </Link>
+            </li>
           </ul>
         </div>
 
-        {/* ===== Stay Updated ===== */}
+        {/* ===== Newsletter ===== */}
         <div className="max-w-80">
-          <p className="font-playfair text-lg text-white drop-shadow-lg">
-            ✨ STAY UPDATED
+          <p className="flex items-center gap-2 font-playfair text-lg mb-4">
+            <FontAwesomeIcon
+              icon={faEnvelopeOpenText}
+              className="text-green-400"
+            />
+            STAY UPDATED
           </p>
-          <p className="mt-3 text-sm opacity-90">
-            Subscribe for festive updates, special Christmas deals, and more.
+          <p className="text-sm opacity-90 mb-4">
+            Receive Christmas deals & festive offers straight to your inbox 🎅
           </p>
 
-          <div className="flex items-center mt-4">
+          <div className="relative mt-4">
             <input
-              type="text"
-              className="bg-white text-black rounded-l h-9 px-3 outline-none"
-              placeholder="Your email"
+              type="email"
+              placeholder="Enter your email address"
+              className="
+                peer
+                w-full h-11 px-4 pr-12
+                rounded-full
+
+                bg-[#4a0000]
+                text-white
+                border-2 border-[#7a0000]
+                outline-none
+
+                placeholder:text-red-300/60
+
+                focus:bg-white
+                focus:text-black
+                focus:border-green-500
+                focus:ring-4 focus:ring-green-400/30
+                focus:placeholder:text-green-500
+
+                transition-all duration-300
+              "
             />
-            <button className="flex items-center justify-center bg-green-600 hover:bg-green-700 h-9 w-10 rounded-r transition">
-              <img
-                src={assets.arrowIcon}
-                alt="arrow"
-                className="w-3.5 invert brightness-200"
-              />
+
+            <button
+              className="
+                absolute right-1 top-1/2 -translate-y-1/2
+                h-9 w-9
+                rounded-full
+
+                bg-green-900
+                text-green-200
+                shadow-inner
+
+                peer-focus:bg-green-600
+                peer-focus:text-white
+                peer-focus:shadow-lg
+
+                peer-not-placeholder-shown:bg-green-600
+                peer-not-placeholder-shown:text-white
+
+                transition-all duration-300
+              "
+            >
+              <FontAwesomeIcon icon={faPaperPlane} size="sm" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Divider */}
-      <hr className="border-white/40 mt-8" />
+      <hr className="border-white/30 mt-10" />
 
-      {/* Bottom row */}
-      <div className="flex flex-col md:flex-row gap-2 items-center justify-between py-5 text-sm opacity-90">
-        <p>© {new Date().getFullYear()} QuickStay — Merry Christmas 🎄</p>
-        <ul className="flex items-center gap-4">
+      {/* Bottom */}
+      <div className="flex flex-col md:flex-row items-center justify-between py-6 text-sm opacity-90">
+        <p>© {new Date().getFullYear()} Paradise Hotel — Merry Christmas 🎄</p>
+        <ul className="flex gap-5">
           <li>
-            <a href="#" className="hover:text-green-300 transition">
+            <Link to="/privacy" className="hover:text-green-300">
               Privacy
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#" className="hover:text-green-300 transition">
+            <Link to="/terms" className="hover:text-green-300">
               Terms
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#" className="hover:text-green-300 transition">
+            <Link to="/sitemap" className="hover:text-green-300">
               Sitemap
-            </a>
+            </Link>
           </li>
         </ul>
       </div>
-    </div>
+    </footer>
   );
 };
 
