@@ -25,4 +25,5 @@ body {
 :root {
   --color-primary: #2563EB;
   --color-secondary: #FBBF24;
+  --navbar-height: 96px;
 }
