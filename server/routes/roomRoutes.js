@@ -13,31 +13,18 @@ import {
 
 const roomRouter = express.Router();
 
-/**
- * =========================
- * PUBLIC ROUTES
- * =========================
- */
-
-// Get available rooms (for users)
+// Get available rooms
 roomRouter.get("/", getRooms);
-
-/**
- * =========================
- * OWNER ROUTES (Protected)
- * =========================
- */
-
-// Create room
-roomRouter.post(
-  "/",
-  protect,
-  upload.array("images", 5),
-  createRoom
-);
 
 // Get rooms of owner
 roomRouter.get("/owner", protect, getOwnerRooms);
+
+// ✅ TOGGLE AVAILABILITY – ĐẶT TRƯỚC
+roomRouter.patch(
+  "/:roomId/toggle-availability",
+  protect,
+  toggleRoomAvailability
+);
 
 // Get single room by ID
 roomRouter.get("/:roomId", protect, getRoomById);
@@ -55,13 +42,6 @@ roomRouter.delete(
   "/:roomId",
   protect,
   deleteRoom
-);
-
-// Toggle availability
-roomRouter.patch(
-  "/:roomId/toggle-availability",
-  protect,
-  toggleRoomAvailability
 );
 
 export default roomRouter;
