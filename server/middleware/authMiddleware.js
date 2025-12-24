@@ -61,16 +61,6 @@ export const protect = async (req, res, next) => {
       console.log('User email updated:', userId, email);
     }
 
-    // Check if the account is locked
-    if (!dbUser.isActive) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Your account has been locked. Please contact an admin.",
-        });
-    }
-
     req.user = dbUser;
     next();
   } catch (err) {

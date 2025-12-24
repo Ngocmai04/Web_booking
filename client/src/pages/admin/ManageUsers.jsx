@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
-import AddUserAdminForm from "./AddUserAdminForm";
 
 const ManageUsers = () => {
   const { axios, getToken } = useAppContext();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
-  const [showAddForm, setShowAddForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -100,8 +98,8 @@ const ManageUsers = () => {
         👥 User Management
       </h1>
 
-      {/* Filter and Add Button */}
-      <div className="mb-6 flex gap-2 flex-wrap justify-between items-center">
+      {/* Filter */}
+      <div className="mb-6 flex gap-2 flex-wrap">
         <div className="flex gap-2 flex-wrap">
           {["all", "user", "hotelOwner", "admin"].map((f) => (
             <button
@@ -124,28 +122,7 @@ const ManageUsers = () => {
             </button>
           ))}
         </div>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition font-medium"
-        >
-          {showAddForm ? "Cancel" : "+ Add New User"}
-        </button>
       </div>
-
-      {/* Add User Form */}
-      {showAddForm && (
-        <div className="mb-6 bg-white rounded-xl shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Add New User
-          </h2>
-          <AddUserAdminForm
-            onSuccess={() => {
-              setShowAddForm(false);
-              fetchUsers();
-            }}
-          />
-        </div>
-      )}
 
       {/* Users Table */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
