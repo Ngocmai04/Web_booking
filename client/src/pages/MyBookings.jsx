@@ -269,23 +269,42 @@ const MyBookings = () => {
 
                                             {/* Payment Status */}
                                             {booking.isEmailConfirmed && (
-                                                <div className="w-full bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-3 hover:shadow-md transition-all">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <div className={`h-3 w-3 rounded-full ${booking.isPaid ? "bg-green-500 animate-pulse" : "bg-red-500 animate-pulse"}`}></div>
-                                                        <p className={`text-sm font-bold ${booking.isPaid ? "text-green-700" : "text-red-700"}`}>
-                                                            <i className={`fas ${booking.isPaid ? 'fa-check-circle' : 'fa-times-circle'} mr-1`}></i>
-                                                            {booking.isPaid ? "Paid" : "Unpaid"}
-                                                        </p>
+                                                <div className="w-full space-y-2">
+                                                    {/* Payment Method */}
+                                                    <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <i className={`fas ${booking.paymentMethod === 'Stripe' ? 'fa-credit-card' : 'fa-hotel'} text-blue-600`}></i>
+                                                            <p className="text-sm font-bold text-blue-700">
+                                                                {booking.paymentMethod}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    {!booking.isPaid && (
+
+                                                    {/* Payment Status */}
+                                                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-3 hover:shadow-md transition-all">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <div className={`h-3 w-3 rounded-full ${booking.isPaid ? "bg-green-500 animate-pulse" : "bg-red-500 animate-pulse"}`}></div>
+                                                            <p className={`text-sm font-bold ${booking.isPaid ? "text-green-700" : "text-red-700"}`}>
+                                                                <i className={`fas ${booking.isPaid ? 'fa-check-circle' : 'fa-times-circle'} mr-1`}></i>
+                                                                {booking.isPaid ? "Paid" : "Unpaid"}
+                                                            </p>
+                                                        </div>
+                                                        {!booking.isPaid && booking.paymentMethod === "Stripe" && (
                                                         <button 
                                                             onClick={() => handlePayment(booking._id)} 
                                                             className="w-full px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-green-500 text-white font-bold rounded-lg hover:from-red-600 hover:to-green-600 transform hover:scale-105 transition-all shadow-lg"
                                                         >
                                                             <i className="fas fa-credit-card mr-2"></i>
-                                                            Pay Now
+                                                            Pay Now with Stripe
                                                         </button>
-                                                    )}
+                                                        )}
+                                                        {booking.paymentMethod === "Pay At Hotel" && !booking.isPaid && (
+                                                            <p className="text-xs text-gray-600 text-center">
+                                                                <i className="fas fa-info-circle mr-1"></i>
+                                                                You'll pay at the hotel
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             )}
 
