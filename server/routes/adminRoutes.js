@@ -5,7 +5,6 @@ import {
   addUserAdmin,
   getAllUsers,
   getUserById,
-  toggleUserActive,
   changeUserRole,
   // Hotel management
   addHotelAdmin,
@@ -37,7 +36,6 @@ adminRouter.use(protect, isAdmin);
 adminRouter.post("/users", addUserAdmin);
 adminRouter.get("/users", getAllUsers);
 adminRouter.get("/users/:id", getUserById);
-adminRouter.put("/users/:id/toggle-active", toggleUserActive);
 adminRouter.put("/users/:id/role", changeUserRole);
 
 // ==================== HOTEL ROUTES ====================
