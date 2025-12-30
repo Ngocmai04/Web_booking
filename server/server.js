@@ -37,6 +37,7 @@ app.use(
       "http://localhost:5174",
       "https://paradisehotel-snowy.vercel.app",
       "https://hotel-rxyj.onrender.com",
+      "https://web-booking-9v4g.vercel.app"
     ],
     credentials: true,
   })
