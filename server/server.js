@@ -32,7 +32,9 @@ app.use(
     origin: [
       "https://hotel-booking-iota-weld.vercel.app",
       "http://localhost:5173",
+      "http://localhost:5174",
       "https://paradisehotel-snowy.vercel.app",
+      "https://hotel-rxyj.onrender.com",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
