@@ -109,6 +109,8 @@ const RoomDetails = () => {
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
+  const [showCheckMailModal, setShowCheckMailModal] = useState(false);
+  const [bookingCreated, setBookingCreated] = useState(false);
 
   const onSubmitHandler = async (e) => {
     try {
@@ -142,30 +144,22 @@ const RoomDetails = () => {
       );
 
       if (data.success) {
-        if (method === "Stripe") {
-          // Redirect to Stripe payment
-          const paymentData = await axios.post(
-            "/api/bookings/stripe-payment",
-            { bookingId: data.bookingId },
-            { headers: { Authorization: `Bearer ${await getToken()}` } }
-          );
-          if (paymentData.data.success) {
-            window.location.href = paymentData.data.url;
-          } else {
-            toast.error(paymentData.data.message);
-          }
-        } else {
-          // Pay At Hotel - just show success and navigate
-          toast.success(data.message);
-          navigate("/my-bookings");
-          scrollTo(0, 0);
-        }
+        // Show check mail modal for both payment methods
+        setBookingCreated(true);
+        setShowCheckMailModal(true);
+        toast.success(data.message);
       } else {
         toast.error(data.message);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
     }
+  };
+
+  const handleCheckMailModalClose = () => {
+    setShowCheckMailModal(false);
+    navigate("/my-bookings");
+    window.scrollTo(0, 0);
   };
 
   const handleSubmitReview = async (e) => {
@@ -1170,7 +1164,9 @@ const RoomDetails = () => {
                       <i className="fas fa-credit-card text-2xl"></i>
                       <span className="text-xl font-bold">Pay with Stripe</span>
                     </div>
-                    <p className="text-sm text-blue-100">Secure online payment</p>
+                    <p className="text-sm text-blue-100">
+                      Secure online payment
+                    </p>
                   </div>
                   <i className="fas fa-arrow-right text-2xl group-hover:translate-x-2 transition-transform"></i>
                 </div>
@@ -1187,7 +1183,9 @@ const RoomDetails = () => {
                       <i className="fas fa-hotel text-2xl"></i>
                       <span className="text-xl font-bold">Pay At Hotel</span>
                     </div>
-                    <p className="text-sm text-green-100">Pay when you arrive</p>
+                    <p className="text-sm text-green-100">
+                      Pay when you arrive
+                    </p>
                   </div>
                   <i className="fas fa-arrow-right text-2xl group-hover:translate-x-2 transition-transform"></i>
                 </div>
@@ -1200,6 +1198,47 @@ const RoomDetails = () => {
               className="w-full mt-4 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all font-semibold"
             >
               Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Check Mail Modal */}
+      {showCheckMailModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-bounce-in">
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-4 animate-bounce">📧</div>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                Check Your Email!
+              </h2>
+              <p className="text-gray-600 text-lg">
+                Booking created successfully!
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="text-2xl">✅</div>
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-800">
+                      Confirmation email sent
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Please check your email inbox to confirm your booking
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleCheckMailModalClose}
+              className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105"
+            >
+              <i className="fas fa-check-circle mr-2"></i>
+              Got it! Go to My Bookings
             </button>
           </div>
         </div>
