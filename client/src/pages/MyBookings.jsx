@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import Title from '../components/Title' 
 import { useAppContext } from '../context/AppContext'
 import toast from 'react-hot-toast'
@@ -7,6 +8,7 @@ const MyBookings = () => {
     const { axios, getToken, user } = useAppContext();
     const [bookings, setBookings] = useState([]);
     const [resendingId, setResendingId] = useState(null);
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const fetchUserBookings = useCallback(async () => {
         try {
@@ -24,6 +26,8 @@ const MyBookings = () => {
 
     const handlePayment = async (bookingId) => {
         try {
+            // Store bookingId in localStorage for verification after redirect
+            localStorage.setItem('pendingPaymentBookingId', bookingId);
             const { data } = await axios.post('/api/bookings/stripe-payment', { bookingId }, { headers: { Authorization: `Bearer ${await getToken()}` } })
             if (data.success) {
                 window.location.href = data.url
@@ -34,6 +38,33 @@ const MyBookings = () => {
             toast.error(error.message)
         }
     }
+
+    const verifyPayment = useCallback(async (bookingId, sessionId = null) => {
+        try {
+            console.log('🔍 Verifying payment for booking:', bookingId, 'session:', sessionId);
+            const { data } = await axios.post(
+                '/api/bookings/verify-payment',
+                { bookingId, sessionId },
+                { headers: { Authorization: `Bearer ${await getToken()}` } }
+            );
+            if (data.success) {
+                if (data.booking?.isPaid) {
+                    toast.success('Payment verified successfully!');
+                    // Refresh bookings immediately
+                    await fetchUserBookings();
+                    return data.booking;
+                } else {
+                    console.log('Payment not yet paid, status:', data.paymentStatus);
+                }
+            } else {
+                console.log('Payment verification failed:', data.message);
+            }
+        } catch (error) {
+            console.error('Error verifying payment:', error);
+            toast.error('Failed to verify payment');
+        }
+        return null;
+    }, [axios, getToken, fetchUserBookings]);
 
     const handleResendConfirmation = async (bookingId) => {
         try {
@@ -56,6 +87,108 @@ const MyBookings = () => {
             fetchUserBookings();
         }
     }, [user, fetchUserBookings]);
+
+    // Verify payment when returning from Stripe
+    useEffect(() => {
+        const checkPaymentStatus = async () => {
+            const paymentStatus = searchParams.get('payment');
+            const sessionId = searchParams.get('session_id');
+            
+            if (paymentStatus === 'success' && user) {
+                // Get bookingId from localStorage or find unpaid Stripe booking
+                const pendingBookingId = localStorage.getItem('pendingPaymentBookingId');
+                
+                if (pendingBookingId) {
+                    console.log('✅ Payment success detected, verifying booking:', pendingBookingId);
+                    // Verify payment for this specific booking
+                    const verified = await verifyPayment(pendingBookingId, sessionId);
+                    if (verified?.isPaid) {
+                        localStorage.removeItem('pendingPaymentBookingId');
+                    }
+                    // Remove query params
+                    setSearchParams({});
+                } else if (sessionId) {
+                    // If we have sessionId but no bookingId in localStorage, try to verify all unpaid bookings
+                    console.log('✅ Payment success detected with sessionId, checking unpaid bookings');
+                    const unpaidStripeBookings = bookings.filter(
+                        b => b.paymentMethod === 'Stripe' && !b.isPaid
+                    );
+                    
+                    for (const booking of unpaidStripeBookings) {
+                        const verified = await verifyPayment(booking._id, sessionId);
+                        if (verified?.isPaid) {
+                            break; // Stop after first successful verification
+                        }
+                    }
+                    // Remove query params
+                    setSearchParams({});
+                } else {
+                    // No sessionId, just refresh bookings
+                    await fetchUserBookings();
+                    setSearchParams({});
+                }
+            } else if (paymentStatus === 'cancelled') {
+                toast.error('Payment was cancelled');
+                localStorage.removeItem('pendingPaymentBookingId');
+                setSearchParams({});
+            }
+        };
+
+        if (user) {
+            // Always check payment status when component mounts or searchParams change
+            if (searchParams.get('payment')) {
+                checkPaymentStatus();
+            } else {
+                // Check for pending payments even without query params
+                const checkPendingPayment = async () => {
+                    const pendingBookingId = localStorage.getItem('pendingPaymentBookingId');
+                    if (pendingBookingId && bookings.length > 0) {
+                        const booking = bookings.find(b => b._id === pendingBookingId);
+                        if (booking && booking.paymentMethod === 'Stripe' && !booking.isPaid) {
+                            console.log('🔄 Found pending payment, verifying...');
+                            await verifyPayment(pendingBookingId);
+                        }
+                    }
+                };
+                checkPendingPayment();
+            }
+        }
+    }, [searchParams, user, bookings, verifyPayment, setSearchParams, fetchUserBookings]);
+
+    // Poll for payment status update (fallback if webhook fails)
+    useEffect(() => {
+        if (!user || bookings.length === 0) return;
+
+        const pendingBookingId = localStorage.getItem('pendingPaymentBookingId');
+        if (!pendingBookingId) return;
+
+        const booking = bookings.find(b => b._id === pendingBookingId);
+        if (!booking || booking.isPaid) {
+            localStorage.removeItem('pendingPaymentBookingId');
+            return;
+        }
+
+        // Poll every 5 seconds for up to 2 minutes
+        let pollCount = 0;
+        const maxPolls = 24; // 24 * 5s = 2 minutes
+
+        const pollInterval = setInterval(async () => {
+            pollCount++;
+            if (pollCount > maxPolls) {
+                clearInterval(pollInterval);
+                localStorage.removeItem('pendingPaymentBookingId');
+                return;
+            }
+
+            const verified = await verifyPayment(pendingBookingId);
+            if (verified?.isPaid) {
+                clearInterval(pollInterval);
+                localStorage.removeItem('pendingPaymentBookingId');
+            }
+        }, 5000);
+
+        return () => clearInterval(pollInterval);
+    }, [user, bookings, verifyPayment]);
 
     // Snowflake component
     const Snowflakes = () => {

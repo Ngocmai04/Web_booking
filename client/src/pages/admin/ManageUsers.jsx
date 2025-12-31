@@ -226,9 +226,9 @@ const ManageUsers = () => {
                                    : "bg-gradient-to-r from-gray-400 to-gray-500 text-white border-gray-300"
                                }`}
                     >
-                      <option value="user">👤 User</option>
-                      <option value="hotelOwner">🏨 Hotel Owner</option>
-                      <option value="admin">⭐ Admin</option>
+                      <option value="user" className="text-black">👤 User</option>
+                      <option value="hotelOwner" className="text-black">🏨 Hotel Owner</option>
+                      <option value="admin" className="text-black">⭐ Admin</option>
                     </select>
                   </td>
                 </tr>
