@@ -583,3 +583,28 @@ export const getHotelStats = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
+// Lấy booking mới trong 24h qua (notifications)
+// GET /api/admin/notifications
+export const getRecentBookings = async (req, res) => {
+  try {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    
+    const recentBookings = await Booking.find({
+      createdAt: { $gte: twentyFourHoursAgo }
+    })
+      .populate("user", "username email")
+      .populate("room", "roomType")
+      .populate("hotel", "name city")
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.json({ 
+      success: true, 
+      notifications: recentBookings,
+      count: recentBookings.length 
+    });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};

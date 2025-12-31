@@ -8,6 +8,7 @@ import {
   faChevronLeft,
   faChevronRight,
   faSnowflake,
+  faCalendarCheck,
 } from '@fortawesome/free-solid-svg-icons'
 
 const Sidebar = () => {
@@ -34,6 +35,13 @@ const Sidebar = () => {
       label: 'My Rooms', 
       emoji: '🛏️',
       subtext: 'Manage rooms'
+    },
+    { 
+      path: '/owner/bookings', 
+      icon: faCalendarCheck, 
+      label: 'Bookings', 
+      emoji: '📅',
+      subtext: 'Manage bookings'
     },
   ]
 

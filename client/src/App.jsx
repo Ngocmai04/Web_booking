@@ -9,6 +9,7 @@ import EditRoom from './pages/hotelOwner/EditRoom'
 import AddHotel from './pages/hotelOwner/AddHotel'
 import EditHotel from './pages/hotelOwner/EditHotel'
 import ListHotel from './pages/hotelOwner/ListHotel'
+import ManageBookings from './pages/hotelOwner/ManageBookings'
 import HotelReg from './components/HotelReg'
 import { useAppContext } from './context/AppContext'
 import { Toaster } from 'react-hot-toast'
@@ -31,7 +32,6 @@ import ManageUsers from "./pages/admin/ManageUsers";
 import ManageHotels from "./pages/admin/ManageHotels";
 import PendingHotels from "./pages/admin/PendingHotels";
 import ManageRooms from "./pages/admin/ManageRooms";
-import ManageBookings from "./pages/admin/ManageBookings";
 
 const App = () => {
   // Check Is Route Starts With Owner or Admin
@@ -168,6 +168,7 @@ const App = () => {
             <Route path="edit-hotel/:id" element={<EditHotel />} />
             <Route path="list-room" element={<ListRoom />} />
             <Route path="edit-room/:roomId" element={<EditRoom />} />
+            <Route path="bookings" element={<ManageBookings />} />
           </Route>
 
           {/* Admin routes */}
@@ -177,7 +178,6 @@ const App = () => {
             <Route path="hotels" element={<ManageHotels />} />
             <Route path="pending-hotels" element={<PendingHotels />} />
             <Route path="rooms" element={<ManageRooms />} />
-            <Route path="bookings" element={<ManageBookings />} />
           </Route>
         </Routes>
       </div>
