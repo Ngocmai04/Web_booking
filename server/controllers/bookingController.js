@@ -609,3 +609,142 @@ export const resendConfirmation = async (req, res) => {
     res.json({ success: false, message: "Failed to send email." });
   }
 };
+
+/* --------------------------------------------------
+   GET /api/bookings/owner-notifications
+   Lấy thông báo cho Hotel Owner (booking mới, thanh toán)
+-------------------------------------------------- */
+export const getOwnerNotifications = async (req, res) => {
+  try {
+    const userId = req.auth.userId;
+    
+    // Lấy tất cả hotels của owner
+    const hotels = await Hotel.find({ owner: userId });
+    
+    if (!hotels.length) {
+      return res.json({ 
+        success: true, 
+        notifications: [],
+        counts: { newBookings: 0, recentPayments: 0, unpaidBookings: 0, total: 0 }
+      });
+    }
+
+    const hotelIds = hotels.map(h => h._id);
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    // Lấy bookings mới trong 24h
+    const newBookings = await Booking.find({
+      hotel: { $in: hotelIds },
+      createdAt: { $gte: twentyFourHoursAgo }
+    })
+      .populate("user", "username email")
+      .populate("room", "roomType")
+      .populate("hotel", "name city")
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    // Lấy bookings vừa được thanh toán trong 24h
+    const recentPayments = await Booking.find({
+      hotel: { $in: hotelIds },
+      isPaid: true,
+      updatedAt: { $gte: twentyFourHoursAgo }
+    })
+      .populate("user", "username email")
+      .populate("room", "roomType")
+      .populate("hotel", "name city")
+      .sort({ updatedAt: -1 })
+      .limit(10);
+
+    // Lấy bookings chưa thanh toán (Pay At Hotel)
+    const unpaidBookings = await Booking.find({
+      hotel: { $in: hotelIds },
+      isPaid: false,
+      paymentMethod: "Pay At Hotel",
+      status: { $ne: "cancelled" }
+    })
+      .populate("user", "username email")
+      .populate("room", "roomType")
+      .populate("hotel", "name city")
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    // Format notifications
+    const notifications = [];
+
+    // New bookings notifications
+    newBookings.forEach(booking => {
+      notifications.push({
+        _id: booking._id,
+        type: 'new_booking',
+        title: 'Đặt phòng mới',
+        message: `${booking.user?.username || 'Khách'} đã đặt ${booking.room?.roomType || 'phòng'}`,
+        hotelName: booking.hotel?.name,
+        totalPrice: booking.totalPrice,
+        isPaid: booking.isPaid,
+        paymentMethod: booking.paymentMethod,
+        status: booking.status,
+        createdAt: booking.createdAt,
+        icon: 'fa-calendar-plus',
+        color: 'green'
+      });
+    });
+
+    // Recent payments notifications
+    recentPayments.forEach(booking => {
+      // Avoid duplicate if already in newBookings
+      if (!notifications.find(n => n._id.toString() === booking._id.toString())) {
+        notifications.push({
+          _id: booking._id,
+          type: 'payment_completed',
+          title: 'Thanh toán hoàn tất',
+          message: `${booking.user?.username || 'Khách'} đã thanh toán ${booking.totalPrice}$`,
+          hotelName: booking.hotel?.name,
+          totalPrice: booking.totalPrice,
+          isPaid: true,
+          paymentMethod: booking.paymentMethod,
+          status: booking.status,
+          createdAt: booking.updatedAt,
+          icon: 'fa-check-circle',
+          color: 'blue'
+        });
+      }
+    });
+
+    // Unpaid bookings notifications (as reminders)
+    unpaidBookings.forEach(booking => {
+      if (!notifications.find(n => n._id.toString() === booking._id.toString())) {
+        notifications.push({
+          _id: booking._id,
+          type: 'unpaid_booking',
+          title: 'Chờ thanh toán',
+          message: `${booking.user?.username || 'Khách'} - ${booking.room?.roomType || 'phòng'} (${booking.totalPrice}$)`,
+          hotelName: booking.hotel?.name,
+          totalPrice: booking.totalPrice,
+          isPaid: false,
+          paymentMethod: booking.paymentMethod,
+          status: booking.status,
+          createdAt: booking.createdAt,
+          icon: 'fa-clock',
+          color: 'orange'
+        });
+      }
+    });
+
+    // Sort by createdAt
+    notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json({
+      success: true,
+      notifications: notifications.slice(0, 15),
+      counts: {
+        newBookings: newBookings.length,
+        recentPayments: recentPayments.length,
+        unpaidBookings: unpaidBookings.length,
+        total: notifications.length
+      }
+    });
+  } catch (error) {
+    console.error("getOwnerNotifications error:", error);
+    res.json({ success: false, message: error.message });
+  }
+};
