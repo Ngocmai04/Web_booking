@@ -56,18 +56,13 @@ const Hero = () => {
                                 Destination
                             </label>
                             <input
-                                list="destinations"
+                                type="text"
                                 value={destination}
                                 onChange={(e) => setDestination(e.target.value)}
                                 placeholder="Where are you going?"
                                 required
                                 className="mt-2 w-full rounded-xl border-2 border-gray-200 px-5 py-3.5 text-sm text-gray-800 outline-none transition-all focus:border-red-500 focus:ring-2 focus:ring-red-200"
                             />
-                            <datalist id="destinations">
-                                {cities.map((city, index) => (
-                                    <option key={index} value={city} />
-                                ))}
-                            </datalist>
                         </div>
 
                         {/* Check in */}

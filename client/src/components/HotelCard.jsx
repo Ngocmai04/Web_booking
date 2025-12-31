@@ -38,11 +38,10 @@ const HotelCard = ({ room }) => {
     <Link
       to={`/rooms/${room._id}`}
       onClick={() => window.scrollTo(0, 0)}
-      // THAY ĐỔI 1: Thêm 'flex flex-col' để quản lý bố cục dọc
-      className="relative max-w-[300px] aspect-[3/4] w-full rounded-xl overflow-hidden bg-white shadow-lg flex flex-col group transition-shadow hover:shadow-2xl"
+      className="relative w-full max-w-[280px] sm:max-w-[300px] aspect-[3/4] rounded-xl overflow-hidden bg-white shadow-lg flex flex-col group transition-shadow hover:shadow-2xl mx-auto"
     >
-      {/* THAY ĐỔI 2: Đổi h-48 thành h-[60%] để ảnh chiếm 60% chiều cao thẻ */}
-      <div className="relative h-[60%] w-full overflow-hidden">
+      {/* Image Section - 55% height on mobile, 60% on larger screens */}
+      <div className="relative h-[55%] sm:h-[60%] w-full overflow-hidden">
         <img
           src={room.images?.[0]}
           alt="hotel"
@@ -50,41 +49,41 @@ const HotelCard = ({ room }) => {
         />
 
         {isBestSeller && (
-          <p className="absolute top-3 left-3 px-3 py-1 text-xs bg-white/90 backdrop-blur-sm font-semibold rounded-full shadow-sm">
+          <p className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2 sm:px-3 py-1 text-[10px] sm:text-xs bg-white/90 backdrop-blur-sm font-semibold rounded-full shadow-sm">
             Best Seller
           </p>
         )}
       </div>
 
-      <div className="p-4 flex-1 flex flex-col">
-        {/* Phần thông tin trên */}
+      <div className="p-3 sm:p-4 flex-1 flex flex-col">
+        {/* Hotel Info */}
         <div>
-            <div className="flex justify-between items-start mb-2">
-              <p className="font-bold text-lg leading-tight line-clamp-2r-2">{room.hotel.name}</p>
+            <div className="flex justify-between items-start gap-2 mb-1 sm:mb-2">
+              <p className="font-bold text-sm sm:text-lg leading-tight line-clamp-2 flex-1">{room.hotel.name}</p>
 
-              <div className="flex items-center gap-1 text-sm bg-gray-100 px-2 py-1 rounded-md shrink-0">
-                <img src={assets.starIconFilled} className="w-4 h-4" />
+              <div className="flex items-center gap-1 text-xs sm:text-sm bg-gray-100 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md shrink-0">
+                <img src={assets.starIconFilled} className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="font-bold text-gray-700">
                   {averageRating > 0 ? averageRating : "0"}
                 </span>
               </div>
             </div>
 
-            <p className="text-sm text-gray-500 line-clamp-3mb-3">{room.hotel.address}</p>
+            <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 mb-2 sm:mb-3">{room.hotel.address}</p>
         </div>
 
-        {/* THAY ĐỔI 4: Thêm 'mt-auto' để đẩy khối giá và nút xuống tận cùng đáy thẻ */}
-        <div className="flex justify-between items-center mt-auto pt-3 border-t border-gray-100">
+        {/* Price and Book Button */}
+        <div className="flex justify-between items-center mt-auto pt-2 sm:pt-3 border-t border-gray-100">
           <div className="flex flex-col">
-             <span className="text-xs text-gray-400">Start from</span>
-             <p className="font-bold text-lg text-green-700 leading-none">
+             <span className="text-[10px] sm:text-xs text-gray-400">Start from</span>
+             <p className="font-bold text-base sm:text-lg text-green-700 leading-none">
                 {currency}{room.pricePerNight}
              </p>
           </div>
 
           <button
             className="
-                px-4 py-2 text-xs font-bold rounded-full
+                px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold rounded-full
                 border border-red-400
                 text-red-700 bg-red-50
                 transition-all duration-300
