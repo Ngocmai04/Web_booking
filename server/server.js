@@ -26,8 +26,6 @@ app.use(
     origin: [
       "https://hotel-booking-iota-weld.vercel.app",
       "http://localhost:5173",
-      "http://localhost:5174",
-      "https://web-booking-9v4g.vercel.app"
     ],
     credentials: true,
   })

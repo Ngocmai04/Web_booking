@@ -38,17 +38,27 @@ const Navbar = () => {
         h-20 md:h-24
         border-b-4 border-yellow-400
         transition-all duration-300
-        ${scrolled
-          ? "bg-gradient-to-r from-red-700/80 via-green-700/80 to-red-700/80 backdrop-blur-xl shadow-2xl"
-          : "bg-gradient-to-r from-red-600 via-green-600 to-red-600 shadow-lg"}
+        ${
+          scrolled
+            ? "bg-gradient-to-r from-red-700/80 via-green-700/80 to-red-700/80 backdrop-blur-xl shadow-2xl"
+            : "bg-gradient-to-r from-red-600 via-green-600 to-red-600 shadow-lg"
+        }
       `}
     >
       {/* Decorations */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
-        <div className="absolute top-4 left-10 text-white text-2xl animate-pulse">❄</div>
-        <div className="absolute top-6 left-32 text-yellow-300 text-xl animate-pulse delay-100">⛄</div>
-        <div className="absolute top-4 right-20 text-white text-2xl animate-pulse delay-200">🎄</div>
-        <div className="absolute top-6 right-48 text-yellow-300 text-xl animate-pulse delay-300">⭐</div>
+        <div className="absolute top-4 left-10 text-white text-2xl animate-pulse">
+          ❄
+        </div>
+        <div className="absolute top-6 left-32 text-yellow-300 text-xl animate-pulse delay-100">
+          ⛄
+        </div>
+        <div className="absolute top-4 right-20 text-white text-2xl animate-pulse delay-200">
+          🎄
+        </div>
+        <div className="absolute top-6 right-48 text-yellow-300 text-xl animate-pulse delay-300">
+          ⭐
+        </div>
       </div>
 
       <div className="flex items-center justify-between h-full px-6 relative z-10">
@@ -83,8 +93,10 @@ const Navbar = () => {
         {/* --- RIGHT SIDE: Bell, User, Logout --- */}
         <div className="flex items-center gap-4">
           {/* Bell */}
-          <button className="relative p-2 rounded-full bg-white/20 backdrop-blur border border-white/30
-            hover:scale-110 hover:bg-white/30 transition">
+          <button
+            className="relative p-2 rounded-full bg-white/20 backdrop-blur border border-white/30
+            hover:scale-110 hover:bg-white/30 transition"
+          >
             🔔
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
               3
