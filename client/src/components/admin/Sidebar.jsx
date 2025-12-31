@@ -1,7 +1,31 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import { useAppContext } from "../../context/AppContext";
 
 const Sidebar = () => {
+  const { axios, getToken } = useAppContext();
+  const [pendingHotelsCount, setPendingHotelsCount] = useState(0);
+
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const { data } = await axios.get("/api/admin/hotels/pending", {
+          headers: { Authorization: `Bearer ${await getToken()}` },
+        });
+        if (data.success) {
+          setPendingHotelsCount(data.hotels?.length || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch pending hotels count:", error);
+      }
+    };
+
+    fetchPendingCount();
+    // Refresh count every 30 seconds
+    const interval = setInterval(fetchPendingCount, 30000);
+    return () => clearInterval(interval);
+  }, [axios, getToken]);
+
   const menuItems = [
     {
       icon: "fa-chart-line",
@@ -20,6 +44,13 @@ const Sidebar = () => {
       label: "Manage Hotels",
       path: "/admin/hotels",
       hoverIcon: "fa-gift",
+    },
+    {
+      icon: "fa-hotel",
+      label: "Pending Hotels",
+      path: "/admin/pending-hotels",
+      hoverIcon: "fa-clock",
+      badge: pendingHotelsCount,
     },
     {
       icon: "fa-door-open",
@@ -111,9 +142,16 @@ const Sidebar = () => {
                 className={`fas ${item.icon} text-xl group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 relative z-10`}
               ></i>
 
-              <span className="group-hover:translate-x-1 transition-transform duration-300 relative z-10 text-sm">
+              <span className="group-hover:translate-x-1 transition-transform duration-300 relative z-10 text-sm flex-1">
                 {item.label}
               </span>
+
+              {/* Badge for pending count */}
+              {item.badge > 0 && (
+                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-black rounded-full w-6 h-6 flex items-center justify-center shadow-lg animate-bounce border-2 border-white z-20">
+                  {item.badge > 99 ? '99+' : item.badge}
+                </span>
+              )}
 
               <i
                 className={`fas ${item.hoverIcon} ml-auto opacity-0 group-hover:opacity-100 transition-all duration-300 relative z-10
@@ -130,7 +168,7 @@ const Sidebar = () => {
             className="w-6 h-6 text-yellow-300 animate-spin-slow"
             fill="currentColor"
             viewBox="0 0 20 20"
-            style={{ transformOrigin: "50% 50%" }} // đảm bảo quay chính giữa
+            style={{ transformOrigin: "50% 50%" }}
           >
             <path d="M10 3.5a.5.5 0 01.5.5v2a.5.5 0 01-1 0V4a.5.5 0 01.5-.5zm0 9a.5.5 0 01.5.5v2a.5.5 0 01-1 0v-2a.5.5 0 01.5-.5zm6-6a.5.5 0 010 .707l-1.414 1.414a.5.5 0 11-.707-.707L15.293 7a.5.5 0 01.707 0zM7.121 14.879a.5.5 0 010 .707l-1.414 1.414a.5.5 0 11-.707-.707l1.414-1.414a.5.5 0 01.707 0zM16.5 10a.5.5 0 01-.5.5h-2a.5.5 0 010-1h2a.5.5 0 01.5.5zM7 10a.5.5 0 01-.5.5H4a.5.5 0 010-1h2.5A.5.5 0 017 10zm9.879 4.879a.5.5 0 01-.707 0l-1.414-1.414a.5.5 0 11.707-.707l1.414 1.414a.5.5 0 010 .707zM7.121 5.121a.5.5 0 01-.707 0L4.707 3.707a.5.5 0 11.707-.707l1.707 1.707a.5.5 0 010 .707z" />
           </svg>

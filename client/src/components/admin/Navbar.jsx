@@ -1,9 +1,26 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
+// 1. Import các hook của Clerk
+import { UserButton, useUser, useClerk } from '@clerk/clerk-react';
 
 const Navbar = () => {
-  const { user, logout } = useAppContext();
+  const { logout } = useAppContext();
   const [scrolled, setScrolled] = useState(false);
+
+  // 2. Lấy thông tin user từ Clerk
+  const { user: clerkUser, isLoaded } = useUser();
+  const { signOut } = useClerk();
+
+  // Hàm xử lý đăng xuất (kết hợp cả Clerk và AppContext)
+  const handleLogout = async () => {
+    try {
+      await signOut(); // Đăng xuất khỏi Clerk
+      if (logout) logout(); // Xóa state của App (nếu có)
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,21 +62,35 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center justify-between h-full px-6 relative z-10">
-        {/* Logo */}
-        <div className="flex items-center gap-3 cursor-pointer group">
-          <div className="text-4xl group-hover:rotate-12 group-hover:scale-110 transition-all">
-            🎅
+        
+        {/* --- LEFT SIDE: Logo & Home Button --- */}
+        <div className="flex items-center gap-8">
+          {/* Logo */}
+          <div className="flex items-center gap-3 cursor-pointer group">
+            <div className="text-4xl group-hover:rotate-12 group-hover:scale-110 transition-all">
+              🎅
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                Admin Dashboard
+                <span className="text-yellow-300 text-sm animate-bounce">✨</span>
+              </h1>
+              <p className="text-xs text-white/80">Merry Christmas Edition 🎄</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              Admin Dashboard
-              <span className="text-yellow-300 text-sm animate-bounce">✨</span>
-            </h1>
-            <p className="text-xs text-white/80">Merry Christmas Edition 🎄</p>
-          </div>
+
+          {/* Home Button */}
+          <Link
+            to="/"
+            className="px-4 py-2 rounded-full bg-white/20 backdrop-blur border border-white/30 text-white
+             hover:bg-green-500 hover:scale-105 hover:shadow-lg transition flex items-center gap-2 font-bold shadow-sm"
+          >
+            🏠 Home
+          </Link>
         </div>
 
-        {/* Right */}
+
+        {/* --- RIGHT SIDE: Bell, User, Logout --- */}
         <div className="flex items-center gap-4">
           {/* Bell */}
           <button
@@ -72,19 +103,32 @@ const Navbar = () => {
             </span>
           </button>
 
-          {/* User */}
-          <div
-            className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/20 backdrop-blur border border-white/30
-            hover:scale-105 transition cursor-pointer"
-          >
-            <img
-              src={user?.image || "https://via.placeholder.com/40"}
-              alt="avatar"
-              className="w-10 h-10 rounded-full border-2 border-white"
-            />
+          {/* User Info & Clerk Avatar */}
+          <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/20 backdrop-blur border border-white/30
+            hover:scale-105 transition cursor-pointer">
+            
+            {/* 3. Thay thế thẻ img bằng UserButton của Clerk */}
+            {isLoaded && clerkUser ? (
+                <div className="ring-2 ring-yellow-400 rounded-full ring-offset-2 ring-offset-transparent w-10 h-10 flex items-center justify-center overflow-hidden">
+                    <UserButton
+                        appearance={{
+                            elements: {
+                                userButtonAvatarBox: "!w-10 !h-10", // Force kích thước
+                                userButtonImage: "!w-full !h-full",
+                                userButtonTrigger: "!p-0 !border-none !shadow-none focus:!shadow-none",
+                            },
+                        }}
+                    />
+                </div>
+            ) : (
+                // Fallback khi đang load hoặc chưa login (đề phòng)
+                <div className="w-10 h-10 rounded-full bg-gray-300 animate-pulse border-2 border-white"></div>
+            )}
+
             <div className="text-white">
+              {/* Hiển thị tên từ Clerk */}
               <p className="text-sm font-semibold">
-                {user?.username || "Admin"}
+                {clerkUser?.fullName || clerkUser?.firstName || "Admin"}
               </p>
               <p className="text-xs opacity-80">🎄 Ho Ho Ho!</p>
             </div>
@@ -92,7 +136,7 @@ const Navbar = () => {
 
           {/* Logout */}
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="px-5 py-2 rounded-full bg-white/20 backdrop-blur border border-white/30 text-white
               hover:bg-red-700 hover:scale-105 transition flex items-center gap-2"
           >
