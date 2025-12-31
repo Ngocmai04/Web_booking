@@ -55,18 +55,14 @@ const AllRooms = () => {
   const sortOptions = SORT_OPTIONS;
 
   const handleFilterChange = (checked, value, type) => {
-    setSelectedFilters((prevFilters) => {
-      const updatedFilters = { ...prevFilters };
-      if (checked) {
-        updatedFilters[type].push(value);
-      } else {
-        updatedFilters[type] = updatedFilters[type].filter(
-          (item) => item !== value
-        );
-      }
-      return updatedFilters;
-    });
+  setSelectedFilters((prev) => ({
+    ...prev,
+    [type]: checked
+      ? [...prev[type], value]
+      : prev[type].filter((item) => item !== value),
+  }));
   };
+
 
   const handleSortChange = (sortOption) => {
     setSelectedSort(sortOption);
@@ -181,10 +177,33 @@ const AllRooms = () => {
   }, [hotelRooms, axios]);
 
   const filteredRooms = useMemo(() => {
-    return hotelRooms
-      .filter((room) => matchesRoomType(room) && matchesPriceRange(room))
-      .sort(sortRooms);
-  }, [hotelRooms, matchesRoomType, matchesPriceRange, sortRooms]);
+      return hotelRooms
+        .filter((room) => matchesRoomType(room) && matchesPriceRange(room))
+        .sort(sortRooms);
+    }, [hotelRooms, matchesRoomType, matchesPriceRange, sortRooms]);
+    const isFiltering =
+    selectedFilters.roomType.length > 0 ||
+    selectedFilters.priceRange.length > 0;
+
+  const visibleHotels = useMemo(() => {
+    if (!isFiltering) return filteredHotels;
+
+    const hotelIdsWithValidRooms = new Set(
+      filteredRooms.map(room => room.hotel?._id)
+    );
+
+    return filteredHotels.filter(hotel =>
+      hotelIdsWithValidRooms.has(hotel._id)
+    );
+  }, [filteredHotels, filteredRooms, isFiltering]);
+
+  const visibleRooms = useMemo(() => {
+    if (!selectedHotelId) return [];
+    return filteredRooms.filter(
+      (room) => room.hotel?._id === selectedHotelId
+    );
+  }, [filteredRooms, selectedHotelId]);
+
 
   const clearFilters = () => {
     setSelectedFilters({
@@ -194,7 +213,7 @@ const AllRooms = () => {
     setSelectedSort("");
     setSearchParams({});
   };
-
+  
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-emerald-900 via-red-950 to-emerald-950 overflow-hidden">
       {/* Magical Christmas Background */}
@@ -349,7 +368,7 @@ const AllRooms = () => {
           )}
 
                     <div className="space-y-8">
-            {filteredRooms.map((room, index) => {
+            {visibleRooms.map((room, index) => {
               const hotelId = room.hotel?._id;
               const { averageRating = 0, reviewCount = 0 } = ratingsData[hotelId] || {};
               const isExpanded = expandedAmenities[room._id];
