@@ -58,12 +58,6 @@ const Sidebar = () => {
       path: "/admin/rooms",
       hoverIcon: "fa-tree",
     },
-    {
-      icon: "fa-calendar-check",
-      label: "Manage Bookings",
-      path: "/admin/bookings",
-      hoverIcon: "fa-star",
-    },
   ];
 
   return (

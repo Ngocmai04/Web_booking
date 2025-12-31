@@ -60,6 +60,17 @@ const Dashboard = () => {
         return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
+    const formatDateTime = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleString('en-GB', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
     const calculateNights = (checkIn, checkOut) => {
         const start = new Date(checkIn);
         const end = new Date(checkOut);
@@ -308,6 +319,12 @@ const Dashboard = () => {
                                     <div>
                                         <h3 className="text-xl font-black text-gray-800">{item.user.username}</h3>
                                         <p className="text-sm text-gray-600">{item.user.email}</p>
+                                        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Booked: {formatDateTime(item.createdAt)}
+                                        </p>
                                     </div>
                                     <span className={`inline-flex items-center py-2 px-4 text-xs font-bold rounded-full ${
                                         item.isPaid 
@@ -392,6 +409,7 @@ const Dashboard = () => {
                                     <tr>
                                         <th className='py-4 px-4 font-bold text-left text-sm'>Guest</th>
                                         <th className='py-4 px-4 font-bold text-left text-sm'>Room</th>
+                                        <th className='py-4 px-4 font-bold text-center text-sm'>Booked At</th>
                                         <th className='py-4 px-4 font-bold text-center text-sm'>Check-In</th>
                                         <th className='py-4 px-4 font-bold text-center text-sm'>Check-Out</th>
                                         <th className='py-4 px-4 font-bold text-center text-sm'>Nights</th>
@@ -402,7 +420,7 @@ const Dashboard = () => {
                                 <tbody className='text-sm'>
                                     {dashboardData.bookings.length === 0 ? (
                                         <tr>
-                                            <td colSpan="7" className="py-12 text-center">
+                                            <td colSpan="8" className="py-12 text-center">
                                                 <div className="text-6xl mb-4 flex justify-center">
                                                     <SantaIcon />
                                                 </div>
@@ -423,6 +441,11 @@ const Dashboard = () => {
                                                         <p className="font-semibold text-gray-800">{item.room.roomType}</p>
                                                         <p className="text-xs text-gray-500">Room #{item.room.roomNumber || 'N/A'}</p>
                                                     </div>
+                                                </td>
+                                                <td className='py-4 px-4 text-center'>
+                                                    <span className="inline-block bg-purple-100 text-purple-800 font-bold py-1 px-3 rounded-lg text-xs">
+                                                        {formatDateTime(item.createdAt)}
+                                                    </span>
                                                 </td>
                                                 <td className='py-4 px-4 text-center'>
                                                     <span className="inline-block bg-blue-100 text-blue-800 font-bold py-1 px-3 rounded-lg text-xs">
