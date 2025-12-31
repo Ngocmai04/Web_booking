@@ -21,15 +21,15 @@ const Title = ({
 
     return (
         <div
-            className={`flex flex-col justify-center items-center text-center ${align === "left" && "md:items-start md:text-left"
+            className={`flex flex-col justify-center items-center text-center px-2 ${align === "left" && "md:items-start md:text-left"
                 }`}
         >
-            <h1 className={`text-4xl md:text-[40px] font-bold ${font} ${titleClass}`}>
+            <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-bold ${font} ${titleClass}`}>
                 {title}
             </h1>
 
             {subTitle && (
-                <p className={`mt-3 text-sm md:text-base max-w-[42rem] ${subTitleClass}`}>
+                <p className={`mt-2 sm:mt-3 text-xs sm:text-sm md:text-base max-w-[42rem] ${subTitleClass}`}>
                     {subTitle}
                 </p>
             )}
