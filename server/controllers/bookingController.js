@@ -516,7 +516,7 @@ export const resendConfirmation = async (req, res) => {
     );
     await booking.save();
 
-    const confirmUrl = `${process.env.CLIENT_URL}/confirm-booking/${booking._id}/${booking.confirmationToken}`;
+    const confirmUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/confirm-booking/${booking._id}/${confirmationToken}`;
 
     await sendConfirmBookingEmail({
       to: user.email,
