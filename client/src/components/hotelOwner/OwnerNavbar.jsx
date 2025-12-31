@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -65,10 +65,40 @@ const OwnerNavbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [notificationCounts, setNotificationCounts] = useState({ 
+    newBookings: 0, 
+    recentPayments: 0, 
+    unpaidBookings: 0, 
+    total: 0 
+  })
 
-  const { logout } = useAppContext()
+  const { logout, axios, getToken } = useAppContext()
   const { user: clerkUser, isLoaded } = useUser()
   const { signOut } = useClerk()
+
+  // Fetch notifications
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const token = await getToken();
+      const { data } = await axios.get("/api/bookings/owner-notifications", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (data.success) {
+        setNotifications(data.notifications);
+        setNotificationCounts(data.counts);
+      }
+    } catch (error) {
+      console.error("Error fetching owner notifications:", error);
+    }
+  }, [axios, getToken]);
+
+  // Fetch notifications on mount and every 30 seconds
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -78,13 +108,27 @@ const OwnerNavbar = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const notifications = [
-    { id: 1, message: "New booking received!", time: "5 min ago", read: false },
-    { id: 2, message: "Room 304 booked for Christmas", time: "1 hour ago", read: true },
-    { id: 3, message: "Payment received for Suite 101", time: "2 hours ago", read: true },
-  ]
+  // Format time ago
+  const timeAgo = (date) => {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    if (seconds < 60) return 'Vừa xong';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} phút trước`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} giờ trước`;
+    return `${Math.floor(hours / 24)} ngày trước`;
+  };
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  // Close notifications when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showNotifications && !e.target.closest('.notification-dropdown')) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showNotifications]);
 
   const handleLogout = async () => {
     try {
@@ -216,7 +260,7 @@ const OwnerNavbar = () => {
           {/* Right Section */}
           <div className="flex items-center space-x-3 md:space-x-4">
             {/* Notifications */}
-            <div className="relative">
+            <div className="relative notification-dropdown">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="relative p-2 rounded-full hover:bg-white/10 transition-all group"
@@ -225,10 +269,10 @@ const OwnerNavbar = () => {
                   icon={faBell}
                   className="text-white text-lg md:text-xl group-hover:text-yellow-300 transition-colors animate-swing"
                 />
-                {unreadCount > 0 && (
+                {notificationCounts.total > 0 && (
                   <>
                     <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold">
-                      {unreadCount}
+                      {notificationCounts.total > 9 ? '9+' : notificationCounts.total}
                     </div>
                     <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full animate-ping"></div>
                   </>
@@ -237,44 +281,77 @@ const OwnerNavbar = () => {
 
               {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-gradient-to-b from-red-900 to-green-900 rounded-xl shadow-2xl border-2 border-yellow-400 overflow-hidden backdrop-blur-lg z-50">
+                <div className="absolute right-0 mt-2 w-96 bg-gradient-to-b from-red-900 to-green-900 rounded-xl shadow-2xl border-2 border-yellow-400 overflow-hidden backdrop-blur-lg z-50">
                   <div className="p-4 border-b border-white/20">
                     <h3 className="text-white font-bold flex items-center">
                       <FontAwesomeIcon icon={faBell} className="mr-2 text-yellow-300" />
-                      Notifications
-                      <span className="ml-auto text-yellow-300 text-sm bg-red-600 px-2 py-0.5 rounded-full">
-                        {unreadCount} new
+                      Thông báo
+                      <span className="ml-auto flex gap-2 text-xs">
+                        <span className="bg-green-500 px-2 py-0.5 rounded-full">🆕 {notificationCounts.newBookings}</span>
+                        <span className="bg-blue-500 px-2 py-0.5 rounded-full">💰 {notificationCounts.recentPayments}</span>
+                        <span className="bg-orange-500 px-2 py-0.5 rounded-full">⏳ {notificationCounts.unpaidBookings}</span>
                       </span>
                     </h3>
                   </div>
                   <div className="max-h-96 overflow-y-auto">
-                    {notifications.map((notif) => (
-                      <div
-                        key={notif.id}
-                        className={`p-4 border-b border-white/10 hover:bg-white/5 transition-colors cursor-pointer ${!notif.read ? 'bg-red-900/30' : ''}`}
-                      >
-                        <div className="flex items-start">
-                          <div className="mr-3 mt-1">
-                            <FontAwesomeIcon
-                              icon={faGift}
-                              className={`text-sm ${notif.read ? 'text-green-400' : 'text-yellow-400 animate-pulse'}`}
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-white font-medium">{notif.message}</p>
-                            <p className="text-white/60 text-sm mt-1">{notif.time}</p>
-                          </div>
-                          {!notif.read && (
-                            <div className="w-2 h-2 bg-red-500 rounded-full ml-2 animate-pulse"></div>
-                          )}
-                        </div>
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-white/60">
+                        <span className="text-4xl">🎅</span>
+                        <p className="mt-2">Chưa có thông báo mới</p>
                       </div>
-                    ))}
+                    ) : (
+                      notifications.map((notif) => (
+                        <Link
+                          key={notif._id}
+                          to="/owner/bookings"
+                          onClick={() => setShowNotifications(false)}
+                          className={`block p-4 border-b border-white/10 hover:bg-white/5 transition-colors cursor-pointer
+                            ${notif.type === 'new_booking' ? 'bg-green-900/30' : 
+                              notif.type === 'payment_completed' ? 'bg-blue-900/30' : 
+                              'bg-orange-900/30'}`}
+                        >
+                          <div className="flex items-start">
+                            <div className="mr-3 mt-1">
+                              <i className={`fas ${notif.icon} text-lg
+                                ${notif.type === 'new_booking' ? 'text-green-400' : 
+                                  notif.type === 'payment_completed' ? 'text-blue-400' : 
+                                  'text-orange-400'} animate-pulse`}></i>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-white font-medium flex items-center gap-2">
+                                {notif.title}
+                                {notif.isPaid ? (
+                                  <span className="text-xs bg-green-500 px-2 py-0.5 rounded-full">✓ Đã TT</span>
+                                ) : (
+                                  <span className="text-xs bg-orange-500 px-2 py-0.5 rounded-full">Chưa TT</span>
+                                )}
+                              </p>
+                              <p className="text-white/80 text-sm">{notif.message}</p>
+                              <p className="text-yellow-300 text-sm font-semibold">
+                                🏨 {notif.hotelName} - 💰 ${notif.totalPrice}
+                              </p>
+                              <p className="text-white/60 text-xs mt-1">⏰ {timeAgo(notif.createdAt)}</p>
+                            </div>
+                            <span className={`px-2 py-1 rounded-full text-xs font-bold
+                              ${notif.status === 'confirmed' ? 'bg-green-500 text-white' : 
+                                notif.status === 'cancelled' ? 'bg-red-500 text-white' : 
+                                'bg-yellow-500 text-black'}`}>
+                              {notif.status === 'confirmed' ? '✓' : 
+                               notif.status === 'cancelled' ? '✗' : '⏳'}
+                            </span>
+                          </div>
+                        </Link>
+                      ))
+                    )}
                   </div>
                   <div className="p-3 bg-black/20">
-                    <button className="text-center w-full text-yellow-300 hover:text-yellow-400 transition-colors font-semibold">
-                      View all notifications 🎁
-                    </button>
+                    <Link 
+                      to="/owner/bookings"
+                      onClick={() => setShowNotifications(false)}
+                      className="block text-center w-full text-yellow-300 hover:text-yellow-400 transition-colors font-semibold"
+                    >
+                      Xem tất cả đặt phòng 🎁
+                    </Link>
                   </div>
                 </div>
               )}

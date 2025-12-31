@@ -608,3 +608,69 @@ export const getRecentBookings = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
+// Lấy tất cả thông báo cho Admin (users mới, hotels pending)
+// GET /api/admin/all-notifications
+export const getAdminNotifications = async (req, res) => {
+  try {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    
+    // Lấy users mới đăng ký trong 24h
+    const newUsers = await User.find({
+      createdAt: { $gte: twentyFourHoursAgo }
+    }).sort({ createdAt: -1 }).limit(10);
+
+    // Lấy hotels đang chờ duyệt
+    const pendingHotels = await Hotel.find({
+      isVerified: false
+    }).populate("owner", "username email").sort({ createdAt: -1 }).limit(10);
+
+    // Format notifications
+    const notifications = [];
+
+    // Add new users notifications
+    newUsers.forEach(user => {
+      notifications.push({
+        _id: user._id,
+        type: 'new_user',
+        title: 'Người dùng mới đăng ký',
+        message: `${user.username} vừa đăng ký tài khoản`,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+        icon: 'fa-user-plus',
+        color: 'blue'
+      });
+    });
+
+    // Add pending hotels notifications
+    pendingHotels.forEach(hotel => {
+      notifications.push({
+        _id: hotel._id,
+        type: 'pending_hotel',
+        title: 'Khách sạn chờ duyệt',
+        message: `${hotel.name} - ${hotel.city}`,
+        ownerName: hotel.owner?.username || 'Unknown',
+        ownerEmail: hotel.owner?.email || '',
+        createdAt: hotel.createdAt,
+        icon: 'fa-hotel',
+        color: 'orange'
+      });
+    });
+
+    // Sort all notifications by createdAt
+    notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json({ 
+      success: true, 
+      notifications: notifications.slice(0, 15),
+      counts: {
+        newUsers: newUsers.length,
+        pendingHotels: pendingHotels.length,
+        total: newUsers.length + pendingHotels.length
+      }
+    });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};

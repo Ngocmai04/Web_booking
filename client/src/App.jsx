@@ -31,7 +31,6 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import ManageUsers from "./pages/admin/ManageUsers";
 import ManageHotels from "./pages/admin/ManageHotels";
 import PendingHotels from "./pages/admin/PendingHotels";
-import ManageRooms from "./pages/admin/ManageRooms";
 
 const App = () => {
   // Check Is Route Starts With Owner or Admin
@@ -177,7 +176,6 @@ const App = () => {
             <Route path="users" element={<ManageUsers />} />
             <Route path="hotels" element={<ManageHotels />} />
             <Route path="pending-hotels" element={<PendingHotels />} />
-            <Route path="rooms" element={<ManageRooms />} />
           </Route>
         </Routes>
       </div>

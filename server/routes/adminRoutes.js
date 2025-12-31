@@ -27,6 +27,7 @@ import {
   getHotelStats,
   // Notifications
   getRecentBookings,
+  getAdminNotifications,
 } from "../controllers/adminController.js";
 
 const adminRouter = express.Router();
@@ -65,5 +66,6 @@ adminRouter.get("/stats/hotels", getHotelStats);
 
 // ==================== NOTIFICATIONS ROUTES ====================
 adminRouter.get("/notifications", getRecentBookings);
+adminRouter.get("/all-notifications", getAdminNotifications);
 
 export default adminRouter;

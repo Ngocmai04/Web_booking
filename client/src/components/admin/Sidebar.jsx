@@ -52,12 +52,6 @@ const Sidebar = () => {
       hoverIcon: "fa-clock",
       badge: pendingHotelsCount,
     },
-    {
-      icon: "fa-door-open",
-      label: "Manage Rooms",
-      path: "/admin/rooms",
-      hoverIcon: "fa-tree",
-    },
   ];
 
   return (

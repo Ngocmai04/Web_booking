@@ -9,7 +9,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationCounts, setNotificationCounts] = useState({ newUsers: 0, pendingHotels: 0, total: 0 });
 
   // 2. Lấy thông tin user từ Clerk
   const { user: clerkUser, isLoaded } = useUser();
@@ -19,12 +19,12 @@ const Navbar = () => {
   const fetchNotifications = useCallback(async () => {
     try {
       const token = await getToken();
-      const { data } = await axios.get("/api/admin/notifications", {
+      const { data } = await axios.get("/api/admin/all-notifications", {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (data.success) {
         setNotifications(data.notifications);
-        setNotificationCount(data.count);
+        setNotificationCounts(data.counts);
       }
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -148,9 +148,9 @@ const Navbar = () => {
               hover:scale-110 hover:bg-white/30 transition"
             >
               🔔
-              {notificationCount > 0 && (
+              {notificationCounts.total > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center animate-pulse">
-                  {notificationCount > 9 ? '9+' : notificationCount}
+                  {notificationCounts.total > 9 ? '9+' : notificationCounts.total}
                 </span>
               )}
             </button>
@@ -160,62 +160,84 @@ const Navbar = () => {
               <div className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border-2 border-red-200 overflow-hidden z-50">
                 <div className="bg-gradient-to-r from-red-500 to-green-500 px-4 py-3">
                   <h3 className="text-white font-bold flex items-center gap-2">
-                    🎄 Thông báo đặt phòng mới
+                    🎄 Thông báo Admin
+                    <span className="ml-auto flex gap-2 text-xs">
+                      <span className="bg-blue-500 px-2 py-0.5 rounded-full">👤 {notificationCounts.newUsers}</span>
+                      <span className="bg-orange-500 px-2 py-0.5 rounded-full">🏨 {notificationCounts.pendingHotels}</span>
+                    </span>
                   </h3>
                 </div>
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="p-6 text-center text-gray-500">
                       <span className="text-4xl">🎅</span>
-                      <p className="mt-2">Chưa có đặt phòng mới</p>
+                      <p className="mt-2">Chưa có thông báo mới</p>
                     </div>
                   ) : (
                     notifications.map((notification) => (
-                      <div
+                      <Link
                         key={notification._id}
-                        className="p-4 border-b border-gray-100 hover:bg-green-50 transition cursor-pointer"
+                        to={notification.type === 'new_user' ? '/admin/users' : '/admin/pending-hotels'}
+                        onClick={() => setShowNotifications(false)}
+                        className="block p-4 border-b border-gray-100 hover:bg-green-50 transition cursor-pointer"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-red-400 to-green-400 flex items-center justify-center text-white font-bold">
-                            {notification.user?.username?.charAt(0)?.toUpperCase() || '?'}
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
+                            ${notification.type === 'new_user' 
+                              ? 'bg-gradient-to-r from-blue-400 to-blue-600' 
+                              : 'bg-gradient-to-r from-orange-400 to-orange-600'}`}>
+                            <i className={`fas ${notification.icon}`}></i>
                           </div>
                           <div className="flex-1">
-                            <p className="font-semibold text-gray-800">
-                              {notification.user?.username || 'Khách'}
-                              <span className="font-normal text-gray-600"> đã đặt phòng</span>
+                            <p className="font-semibold text-gray-800 flex items-center gap-2">
+                              {notification.title}
+                              {notification.type === 'new_user' && (
+                                <span className={`text-xs px-2 py-0.5 rounded-full 
+                                  ${notification.role === 'admin' ? 'bg-red-100 text-red-700' 
+                                    : notification.role === 'hotelOwner' ? 'bg-purple-100 text-purple-700'
+                                    : 'bg-blue-100 text-blue-700'}`}>
+                                  {notification.role}
+                                </span>
+                              )}
                             </p>
                             <p className="text-sm text-gray-600">
-                              🏨 {notification.hotel?.name || 'Hotel'} - {notification.room?.roomType || 'Room'}
+                              {notification.message}
                             </p>
-                            <p className="text-sm text-green-600 font-semibold">
-                              💰 ${notification.totalPrice}
-                            </p>
+                            {notification.email && (
+                              <p className="text-xs text-gray-500">
+                                📧 {notification.email}
+                              </p>
+                            )}
+                            {notification.ownerName && (
+                              <p className="text-xs text-gray-500">
+                                👤 Chủ: {notification.ownerName}
+                              </p>
+                            )}
                             <p className="text-xs text-gray-400 mt-1">
                               ⏰ {timeAgo(notification.createdAt)}
                             </p>
                           </div>
-                          <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                            notification.status === 'confirmed' 
-                              ? 'bg-green-100 text-green-700' 
-                              : notification.status === 'cancelled'
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {notification.status === 'confirmed' ? '✓ Confirmed' : 
-                             notification.status === 'cancelled' ? '✗ Cancelled' : '⏳ Pending'}
-                          </span>
                         </div>
-                      </div>
+                      </Link>
                     ))
                   )}
                 </div>
-                <Link
-                  to="/admin/bookings"
-                  onClick={() => setShowNotifications(false)}
-                  className="block text-center py-3 bg-gradient-to-r from-red-50 to-green-50 text-red-600 font-semibold hover:from-red-100 hover:to-green-100 transition"
-                >
-                  Xem tất cả đặt phòng →
-                </Link>
+                <div className="flex">
+                  <Link
+                    to="/admin/users"
+                    onClick={() => setShowNotifications(false)}
+                    className="flex-1 text-center py-3 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 font-semibold hover:from-blue-100 hover:to-blue-200 transition text-sm"
+                  >
+                    👤 Quản lý Users
+                  </Link>
+                  <Link
+                    to="/admin/pending-hotels"
+                    onClick={() => setShowNotifications(false)}
+                    className="flex-1 text-center py-3 bg-gradient-to-r from-orange-50 to-orange-100 text-orange-600 font-semibold hover:from-orange-100 hover:to-orange-200 transition text-sm"
+                  >
+                    🏨 Hotels Pending
+                  </Link>
+                </div>
               </div>
             )}
           </div>

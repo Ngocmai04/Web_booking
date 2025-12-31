@@ -1,6 +1,6 @@
 import express from 'express';
 import { protect } from '../middleware/authMiddleware.js';
-import { checkAvailabilityAPI, createBooking, getHotelBookings, getUserBookings, stripePayment, confirmBooking, resendConfirmation, verifyPayment, markBookingAsPaid } from '../controllers/bookingController.js';
+import { checkAvailabilityAPI, createBooking, getHotelBookings, getUserBookings, stripePayment, confirmBooking, resendConfirmation, verifyPayment, markBookingAsPaid, getOwnerNotifications } from '../controllers/bookingController.js';
 
 const bookingRouter = express.Router();
 
@@ -8,6 +8,7 @@ bookingRouter.post('/check-availability', checkAvailabilityAPI);
 bookingRouter.post('/book', protect, createBooking);
 bookingRouter.get('/user', protect, getUserBookings);
 bookingRouter.get('/hotel', protect, getHotelBookings);
+bookingRouter.get('/owner-notifications', protect, getOwnerNotifications);
 bookingRouter.post('/stripe-payment', protect, stripePayment);
 bookingRouter.post('/verify-payment', protect, verifyPayment);
 bookingRouter.put('/mark-paid/:bookingId', protect, markBookingAsPaid);
