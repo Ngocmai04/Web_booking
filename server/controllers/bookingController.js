@@ -354,7 +354,7 @@ export const resendConfirmation = async (req, res) => {
     booking.confirmationTokenExpires = confirmationTokenExpires;
     await booking.save();
 
-    const confirmUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/confirm-booking/${booking._id}/${confirmationToken}`;
+    const confirmUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/confirm-booking/${booking._id}/${confirmationToken}`;
 
     // Get user email - try from DB first, then from Clerk auth
     const userEmail = user.email || req.auth?.user?.primaryEmailAddress?.emailAddress;
