@@ -67,6 +67,24 @@ const Dashboard = () => {
         return nights;
     };
 
+    const handleMarkAsPaid = async (bookingId) => {
+        try {
+            const { data } = await axios.put(
+                `/api/bookings/mark-paid/${bookingId}`,
+                {},
+                { headers: { Authorization: `Bearer ${await getToken()}` } }
+            );
+            if (data.success) {
+                toast.success(data.message);
+                fetchDashboardData(); // Refresh bookings
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || error.message);
+        }
+    };
+
     // SVG Icons
     const ChristmasTreeIcon = () => (
         <svg className="inline-block w-8 h-8" viewBox="0 0 24 24" fill="none">
@@ -343,6 +361,21 @@ const Dashboard = () => {
                                         <p className="text-2xl font-black text-green-600">{currency} {item.totalPrice}</p>
                                     </div>
                                 </div>
+
+                                {/* Mark as Paid Button for Pay At Hotel bookings */}
+                                {!item.isPaid && item.paymentMethod === "Pay At Hotel" && (
+                                    <div className="mt-4 pt-4 border-t-2 border-gray-200">
+                                        <button
+                                            onClick={() => handleMarkAsPaid(item._id)}
+                                            className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold py-3 px-4 rounded-xl hover:from-green-600 hover:to-emerald-600 transform hover:scale-105 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                                        >
+                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                            </svg>
+                                            Mark as Paid
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ))
                     )}
@@ -408,28 +441,41 @@ const Dashboard = () => {
                                                     {currency} {item.totalPrice}
                                                 </td>
                                                 <td className='py-4 px-4 text-center'>
-                                                    <span className={`inline-flex items-center py-2 px-3 text-xs font-bold rounded-full ${
-                                                        item.isPaid 
-                                                            ? "bg-green-200 text-green-700 border-2 border-green-400" 
-                                                            : "bg-yellow-200 text-yellow-700 border-2 border-yellow-400"
-                                                    }`}>
-                                                        {item.isPaid ? (
-                                                            <>
-                                                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <span className={`inline-flex items-center py-2 px-3 text-xs font-bold rounded-full ${
+                                                            item.isPaid 
+                                                                ? "bg-green-200 text-green-700 border-2 border-green-400" 
+                                                                : "bg-yellow-200 text-yellow-700 border-2 border-yellow-400"
+                                                        }`}>
+                                                            {item.isPaid ? (
+                                                                <>
+                                                                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                    </svg>
+                                                                    Paid
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <svg className="w-3 h-3 mr-1 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                    </svg>
+                                                                    Pending
+                                                                </>
+                                                            )}
+                                                        </span>
+                                                        {!item.isPaid && item.paymentMethod === "Pay At Hotel" && (
+                                                            <button
+                                                                onClick={() => handleMarkAsPaid(item._id)}
+                                                                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold py-1.5 px-3 rounded-lg hover:from-green-600 hover:to-emerald-600 transform hover:scale-105 transition-all shadow-md flex items-center gap-1"
+                                                            >
+                                                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                                 </svg>
-                                                                Paid
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <svg className="w-3 h-3 mr-1 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                                </svg>
-                                                                Pending
-                                                            </>
+                                                                Mark Paid
+                                                            </button>
                                                         )}
-                                                    </span>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
