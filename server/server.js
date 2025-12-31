@@ -1,75 +1,63 @@
 import express from "express";
 import dotenv from "dotenv";
+import "dotenv/config";
 import cors from "cors";
 import connectDB from "./configs/db.js";
-import connectCloudinary from "./configs/cloudinary.js";
 import { clerkMiddleware } from "@clerk/express";
-
 import userRouter from "./routes/userRoutes.js";
 import hotelRouter from "./routes/hotelRoutes.js";
 import roomRouter from "./routes/roomRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
 import adminRouter from "./routes/adminRoutes.js";
+import clerkWebhooks from "./controllers/clerkWebhooks.js";
+import connectCloudinary from "./configs/cloudinary.js";
+import { stripeWebhooks } from "./controllers/stripeWebhooks.js";
 import ratingRouter from "./routes/ratingRoutes.js";
 
-import clerkWebhooks from "./controllers/clerkWebhooks.js";
-import { stripeWebhooks } from "./controllers/stripeWebhooks.js";
-
-dotenv.config();
 connectDB();
 connectCloudinary();
+dotenv.config();
 
 const app = express();
 
-/* ================== 1. STRIPE WEBHOOK (RAW BODY – PHẢI ĐẦU TIÊN) ================== */
-app.post(
-  "/api/stripe",
-  express.raw({ type: "application/json" }),
-  stripeWebhooks
-);
-
-/* ================== 2. CORS ================== */
+// 1. CORS
 app.use(
   cors({
     origin: [
       "https://hotel-booking-iota-weld.vercel.app",
       "http://localhost:5173",
       "http://localhost:5174",
-      "https://paradisehotel-snowy.vercel.app",
-      "https://hotel-rxyj.onrender.com",
       "https://web-booking-9v4g.vercel.app"
     ],
     credentials: true,
   })
 );
+app.options(/.*/, cors());
 
-app.options("*", cors());
+// 2. Stripe webhook
+app.post(
+  "/api/stripe",
+  express.raw({ type: "application/json" }),
+  stripeWebhooks
+);
 
-/* ================== 3. BODY PARSER ================== */
+// 3. Body parser
 app.use(express.json());
 
-/* ================== 4. CLERK AUTH (PHẢI TRƯỚC ROUTES CẦN AUTH) ================== */
+// 4. Auth
 app.use(clerkMiddleware());
 
-/* ================== 5. PUBLIC ROUTES ================== */
+// 5. Routes
 app.get("/", (req, res) => {
   res.status(200).send("Backend is running");
 });
-
+app.use("/api/clerk", clerkWebhooks);
+app.use("/api/user", userRouter);
 app.use("/api/hotels", hotelRouter);
 app.use("/api/rooms", roomRouter);
-app.use("/api/ratings", ratingRouter);
-
-/* ================== 6. PROTECTED ROUTES ================== */
-app.use("/api/user", userRouter);
 app.use("/api/bookings", bookingRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/ratings", ratingRouter);
 
-/* ================== 7. CLERK WEBHOOK ================== */
-app.use("/api/clerk", clerkWebhooks);
-
-/* ================== 8. START SERVER ================== */
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
